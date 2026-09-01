@@ -68,7 +68,9 @@ pub struct Imported {
 - `.docx`: paragraph text in document order; every embedded image becomes a `Photo` with
   `origin: Embedded { doc_order }` and a `Placement` at its document position (FR-002, FR-003).
 - `.txt` / `.md`: markers in the text become placements, byte-for-byte compatible with the
-  reference (FR-005).
+  reference (FR-005). Marker parsing runs **only here, on import**. Nothing downstream produces
+  or consumes marker text — the editor works on structure (deviation D-9), so no marker emitter
+  is needed.
 - `title` is `None` when no headline can be detected; the caller prompts (FR-004). It is never
   invented.
 - Out-of-scope Word constructs (tables, footnotes, tracked changes) are skipped with a
@@ -111,6 +113,13 @@ pub fn default_frame(dims: (u32, u32), target: AspectRatio) -> Option<CropRect>;
 pub fn arrange_auto(item: &mut NewsItem, opts: ArrangeOptions) -> ArrangeReport;
 pub fn set_placement(item: &mut NewsItem, at: BlockIndex, placement: Placement) -> Result<()>;
 
+// Manual placement editing — what the desktop cards call into (FR-018a – FR-018d).
+pub fn insert_placement(item: &mut NewsItem, at: BlockIndex, photos: Vec<PhotoId>, layout: Layout) -> Result<()>;
+pub fn move_placement(item: &mut NewsItem, from: BlockIndex, to: BlockIndex) -> Result<()>;
+pub fn remove_placement(item: &mut NewsItem, at: BlockIndex) -> Result<()>;
+pub fn add_to_placement(item: &mut NewsItem, at: BlockIndex, photo: PhotoId) -> Result<()>;
+pub fn set_layout(item: &mut NewsItem, at: BlockIndex, layout: Layout) -> Result<()>;
+
 pub struct ArrangeOptions { pub replace_manual: bool }
 pub struct ArrangeReport { pub placed: usize, pub replaced_manual: usize }
 ```
@@ -125,6 +134,11 @@ pub struct ArrangeReport { pub placed: usize, pub replaced_manual: usize }
   The caller uses this to warn before overwriting (FR-020).
 - Deterministic: the same item and options always produce the same arrangement.
 - `set_placement` changes exactly one placement and leaves the others untouched (FR-021).
+- `add_to_placement` promotes a `FullWidth` or floated placement to a `Row`; removing photos from
+  a `Row` until one remains demotes it back to `FullWidth` (INV-4, FR-018c).
+- `move_placement` carries the placement's photos and layout unchanged (FR-018d).
+- Every one of these operations preserves INV-1: a placement never references a photo the item
+  does not hold, and an emptied placement is dropped rather than left dangling.
 
 ---
 

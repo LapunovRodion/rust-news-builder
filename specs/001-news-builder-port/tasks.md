@@ -98,7 +98,7 @@ text and the same photo order and positions as the source, and no step asked for
 
 ### Implementation for User Story 1
 
-- [ ] T028 [P] [US1] Implement the marker language parser and emitter in `crates/core/src/markers/mod.rs`, reproducing the reference's `MARKER_PATTERN` semantics including single-photo `Row` normalisation to `FullWidth`
+- [ ] T028 [P] [US1] Implement the marker language **parser** in `crates/core/src/markers/mod.rs`, reproducing the reference's `MARKER_PATTERN` semantics including single-photo `Row` normalisation to `FullWidth`. Parse only — no emitter is needed, because the editor works on structure and never sees marker text (deviation D-9)
 - [ ] T029 [P] [US1] Implement natural-sort key construction in `crates/core/src/model/photo.rs`, reproducing the reference's `natural_sort_key` so `photo2` precedes `photo10`
 - [ ] T030 [P] [US1] Implement plain-text and Markdown import in `crates/core/src/import/plain.rs`, including paragraph splitting and body normalisation
 - [ ] T031 [P] [US1] Implement title detection in `crates/core/src/import/title.rs` for all three source formats, returning `None` rather than inventing a title
@@ -111,9 +111,11 @@ text and the same photo order and positions as the source, and no step asked for
 - [ ] T038 [US1] Implement the inline-style HTML renderer in `crates/core/src/render/mod.rs` per [contracts/html-output.md](./contracts/html-output.md): container, title, lead and body paragraphs, the four placement forms, clearing elements, and HTML escaping
 - [ ] T039 [US1] Implement the `build` pipeline in `crates/core/src/build.rs` returning `BuildOutput { fragment, processed, warnings }`, consulting no port so the build is offline
 - [ ] T040 [US1] Implement `newsbuilder build` in `crates/cli/src/main.rs` with `--input`, `--images-dir`, `--output`, `--title`, `--news-slug`, `--public-base-url`, `--appearance`, and `--json` per [contracts/cli.md](./contracts/cli.md)
-- [ ] T041 [US1] Implement the Tauri commands `open_document`, `new_item`, `set_title`, `set_body_text`, `set_slug`, and `build_preview` in `crates/desktop/src/commands/item.rs` per [contracts/desktop-commands.md](./contracts/desktop-commands.md)
+- [ ] T041 [US1] Implement the Tauri commands `open_document`, `new_item`, `set_title`, `set_body`, `set_slug`, and `build_preview` in `crates/desktop/src/commands/item.rs` per [contracts/desktop-commands.md](./contracts/desktop-commands.md), with the body crossing the boundary as `BlockInput[]` rather than as text
 - [ ] T042 [US1] Implement `ItemView`/`PhotoView` projection and the managed session state holding the open `NewsItem` in `crates/desktop/src/state.rs`, serving thumbnails over the asset protocol so full-size bytes never cross the IPC boundary
-- [ ] T043 [P] [US1] Build the editor screen in `crates/desktop/ui/src/lib/Editor.svelte`: text area, title field, and the photo list showing document order
+- [ ] T043 [P] [US1] Build the editor screen in `crates/desktop/ui/src/lib/Editor.svelte`: title field, the photo list showing document order, and a rich text surface that renders paragraphs as editable text and placements as inline cards — marker text is never shown (FR-018b, deviation D-9)
+- [ ] T107 [US1] Build the placement card component in `crates/desktop/ui/src/lib/PlacementCard.svelte`: photo thumbnails, a layout control (full width / row / left / right), and a remove control, calling `set_layout` and `remove_placement` (FR-018b)
+- [ ] T108 [US1] Implement body serialisation between the editor surface and `BlockInput[]` in `crates/desktop/ui/src/lib/body.ts`, so text edits and placement edits both round-trip through `set_body` without ever forming marker text
 - [ ] T044 [US1] Build the preview pane in `crates/desktop/ui/src/lib/Preview.svelte`, injecting the exact string returned by `build_preview` into a sandboxed iframe with no templating, post-processing, or re-styling
 - [ ] T045 [US1] Wire live rebuild on edit in `crates/desktop/ui/src/routes/+page.svelte`, debounced so a text edit refreshes the preview within 150 ms
 - [ ] T046 [US1] Add the CLI refusal path in `crates/cli/src/main.rs`: exit 3 with a message pointing at the desktop application when an item has photos but no placements and no markers to derive them from
@@ -208,11 +210,17 @@ paste, selecting no folder anywhere.
 ### Implementation for User Story 4
 
 - [ ] T083 [US4] Implement `add_photos`, `remove_photo`, `reorder_photos`, and `rename_photo` in `crates/core/src/model/item.rs`, maintaining placement integrity and file-name uniqueness
+- [ ] T113 [US4] Implement `insert_placement`, `move_placement`, `remove_placement`, `add_to_placement`, and `set_layout` in `crates/core/src/model/item.rs` per [contracts/core-api.md](./contracts/core-api.md), including row promotion and demotion
+- [ ] T114 [US4] Implement the Tauri commands `insert_placement`, `move_placement`, `remove_placement`, `add_to_placement`, and `set_layout` in `crates/desktop/src/commands/placement.rs`
 - [ ] T084 [US4] Implement format sniffing and rejection with a named reason in `crates/core/src/photo/mod.rs` for the formats listed in FR-011
 - [ ] T085 [US4] Implement the Tauri commands `add_photos_from_paths`, `add_photo_from_clipboard`, `remove_photo`, `reorder_photos`, and `rename_photo` in `crates/desktop/src/commands/photo.rs`
 - [ ] T086 [US4] Wire Tauri's `onDragDropEvent` in `crates/desktop/ui/src/routes/+page.svelte`, forwarding the supplied paths — HTML5 drag-and-drop is not used (research R8)
 - [ ] T087 [US4] Wire clipboard image paste via `tauri-plugin-clipboard-manager` in `crates/desktop/ui/src/lib/PhotoList.svelte`
 - [ ] T088 [US4] Add reorder, rename, remove, and used/unused indication to `crates/desktop/ui/src/lib/PhotoList.svelte` (FR-010)
+- [ ] T109 [US4] Implement cursor insertion in `crates/desktop/ui/src/lib/Editor.svelte`: with the caret between paragraphs, choosing a photo from the list calls `insert_placement` at that point (FR-018a)
+- [ ] T110 [US4] Implement dragging a photo from the photo list into the text in `crates/desktop/ui/src/lib/Editor.svelte`, showing the insertion point during hover, and dropping onto an existing card calling `add_to_placement` to build a row (FR-018a, FR-018c)
+- [ ] T111 [US4] Implement dragging a placement card to another point in the text in `crates/desktop/ui/src/lib/PlacementCard.svelte`, calling `move_placement` (FR-018d)
+- [ ] T112 [P] [US4] Tests in `crates/core/tests/placement_editing.rs` for `insert_placement`, `move_placement`, `remove_placement`, `add_to_placement`, and `set_layout`: row promotion and demotion (INV-4), emptied placements dropped, and INV-1 preserved throughout
 
 **Checkpoint**: An item can be built end to end from loose photos. Quickstart scenario 4 passes.
 
@@ -239,7 +247,7 @@ is placed, paragraph boundaries are respected, and any placement can be changed 
 - [ ] T094 [US5] Implement `arrange_auto` and `set_placement` in `crates/core/src/arrange/mod.rs`, returning `ArrangeReport { placed, replaced_manual }`
 - [ ] T095 [US5] Implement the Tauri commands `arrange_auto` and `set_placement` in `crates/desktop/src/commands/arrange.rs`
 - [ ] T096 [US5] Add the arrange action and the overwrite confirmation to `crates/desktop/ui/src/lib/Editor.svelte`, calling with `replace_manual: false` first and asking before retrying with `true` (FR-020)
-- [ ] T097 [US5] Add per-placement layout override controls to `crates/desktop/ui/src/lib/Editor.svelte` (FR-021)
+- [ ] T097 [US5] Verify that per-placement override after automatic arrangement works through the existing placement card controls from T107, adding nothing new to the UI (FR-021)
 
 **Checkpoint**: All five stories are independently functional. Quickstart scenario 5 passes.
 
@@ -355,6 +363,10 @@ US3 + US4 (they share `PhotoList.svelte`). US5 last, since it depends on the lay
 
 - Every task names an exact file path
 - `[P]` means a different file with no incomplete dependency
+- **Task IDs are labels, not execution order — the file order is.** T107–T114 were added after the
+  initial pass, when marker typing was dropped in favour of inline placement cards (deviation
+  D-9). They sit physically in the phase they belong to; their numbers are simply the next free
+  ones, so the workspace was not churned by renumbering a hundred tasks
 - Constitution III makes the test tasks mandatory, not optional — verify each fails before
   implementing
 - Commit after each task or logical group; the four merge gates in the `justfile` must be green

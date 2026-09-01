@@ -48,7 +48,12 @@ photo export and no folder selection at any point.
    **Then** that line is used as the news title and is not repeated in the body text.
 4. **Given** a `.txt` or `.md` file with placement markers in the text, **When** it is opened,
    **Then** the markers are honoured exactly as the current tool honours them.
-5. **Given** any opened news item, **When** the editor edits the text or moves a photo,
+5. **Given** any opened news item, **When** the editor looks at the text, **Then** each placed
+   photo appears as a card showing the photo and its layout, and no marker text is visible
+   anywhere in the editor.
+6. **Given** a placement card, **When** the editor changes its layout or removes it, **Then**
+   only that placement changes and the surrounding text is untouched.
+7. **Given** any opened news item, **When** the editor edits the text or moves a photo,
    **Then** the preview reflects the change without an explicit rebuild step.
 
 ---
@@ -155,6 +160,14 @@ clipboard paste, without selecting a folder anywhere in the flow.
    app says so and adds nothing.
 5. **Given** dropped photos that share a file name, **When** they are added, **Then** both are
    kept and published under distinct names.
+6. **Given** the cursor placed between two paragraphs, **When** the editor chooses a photo from
+   the photo list, **Then** the photo is placed at that point as a card.
+7. **Given** a photo dragged from the photo list over the text, **When** it hovers, **Then** the
+   insertion point is shown before the drop, and on release the photo is placed there.
+8. **Given** a photo dropped onto an existing placement card, **When** the drop completes,
+   **Then** the two photos become one row.
+9. **Given** a placement card dragged to another point in the text, **When** it is released,
+   **Then** the placement moves there and its photos and layout are unchanged.
 
 ---
 
@@ -248,9 +261,11 @@ placement can be changed afterwards.
   the built page, preserving document order.
 - **FR-004**: System MUST detect the news title from the source document and exclude it from
   the body text; where no title can be detected, the system MUST prompt for one.
-- **FR-005**: System MUST continue to accept the existing placement marker language — a single
-  full-width photo, a row of several photos, a left-floated photo, and a right-floated photo —
-  so that documents prepared for the current tool still work.
+- **FR-005**: System MUST continue to accept the existing placement marker language on import —
+  a single full-width photo, a row of several photos, a left-floated photo, and a right-floated
+  photo — so that documents prepared for the current tool still open. Markers are an input
+  format only: the editor MUST NOT have to type one to place a photo, and MUST NOT be shown
+  marker text while editing.
 
 **Photo intake and management**
 
@@ -281,6 +296,16 @@ placement can be changed afterwards.
 
 - **FR-018**: Users MUST be able to place a photo as full width, as one of a row, floated left,
   or floated right.
+- **FR-018a**: Users MUST be able to insert a photo into the text by placing the cursor and
+  choosing the photo, and by dragging the photo from the photo list into the text. The insertion
+  point MUST be shown before the drop completes.
+- **FR-018b**: A placed photo MUST appear in the text as a visual card showing the photo and its
+  layout, never as marker text. The card MUST carry controls to change the layout and to remove
+  the placement.
+- **FR-018c**: Users MUST be able to build a row by dropping a photo onto an existing placement
+  card, and to break a row by removing photos from it.
+- **FR-018d**: Users MUST be able to move a placement to another point in the text by dragging
+  its card.
 - **FR-019**: Users MUST be able to arrange all unplaced photos in one action, with the system
   distributing them through the text and selecting a layout suited to each photo's shape.
 - **FR-020**: System MUST warn before automatic arrangement replaces placements the editor made
@@ -456,6 +481,24 @@ is visible in the published URLs, so the editor can tell the two items apart. It
 do not collide are unaffected, so this changes no existing published URL.
 
 **Affects**: FR-026 and the slug-collision edge case.
+
+### D-9: Placements are edited as cards, not as typed markers
+
+**Changes**: In the reference, placing a photo meant typing `[image:1]` into the text by hand,
+and the editor saw that marker text while working. The product places photos by cursor or drag
+and shows each placement as a card carrying the photo and its layout. Marker text is never typed
+and never displayed.
+
+**Rationale**: Typing index-based markers is the least convenient part of the current workflow —
+the editor has to hold a mapping between numbers and photos in their head, and the numbers shift
+whenever photos are reordered. Removing markers from the editing surface dissolves that problem
+entirely: placements bind to a photo's stable identity, so reordering photos cannot silently
+re-point a placement.
+
+Markers remain fully supported **as an input format** (FR-005), so documents prepared for the
+reference still open and produce identical output. Nothing about the published HTML changes.
+
+**Affects**: FR-005, FR-018a – FR-018d, US1 acceptance 5–6, US4 acceptance 6–9.
 
 ## Success Criteria *(mandatory)*
 

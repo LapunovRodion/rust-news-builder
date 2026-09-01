@@ -48,11 +48,24 @@ bytes never cross the IPC boundary — that is what keeps SC-008 reachable for 3
 | `open_document` | `(path: string) → ImportResult` | `.docx` extracts photos and positions (FR-002, FR-003) |
 | `new_item` | `() → ItemView` | Empty item for the drag-and-drop path (US4) |
 | `set_title` | `(title: string) → ItemView` | Used when import detects none (FR-004) |
-| `set_body_text` | `(text: string) → ItemView` | Editor writes; markers are reparsed |
+| `set_body` | `(blocks: BlockInput[]) → ItemView` | The whole body as structure, not as marker text |
+| `insert_placement` | `(atBlockIndex, photoIds, layout) → ItemView` | Cursor or drag insertion (FR-018a) |
+| `move_placement` | `(fromBlockIndex, toBlockIndex) → ItemView` | Dragging a card (FR-018d) |
+| `remove_placement` | `(blockIndex) → ItemView` | The card's remove control (FR-018b) |
+| `add_to_placement` | `(blockIndex, photoId) → ItemView` | Drop onto a card builds a row (FR-018c) |
+| `set_layout` | `(blockIndex, layout) → ItemView` | The card's layout control (FR-018b) |
 | `set_slug` | `(slug: string) → ItemView` | Override (FR-026) |
 
 `ImportResult` is `{ item: ItemView, titleDetected: boolean, warnings: Warning[] }`. When
 `titleDetected` is false the UI prompts; it never invents a title.
+
+`BlockInput` is `{ kind: 'paragraph', text: string }` or
+`{ kind: 'placement', photoIds: string[], layout: Layout }`. The body crosses the boundary as
+structure, never as a string containing markers — the editor neither types nor sees marker text
+(deviation D-9). Marker parsing lives on the Rust side and runs only on import.
+
+Placements bind to photo ids, not to positions in the photo list. Reordering the photo list
+therefore cannot re-point a placement, which is what FR-009 requires.
 
 ### Photos
 
