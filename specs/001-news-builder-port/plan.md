@@ -32,6 +32,7 @@ TypeScript with Svelte 5 and Vite.
 | Concern | Choice |
 |---------|--------|
 | Desktop shell | `tauri` 2.x + `tauri-plugin-dialog`, `-fs`, `-clipboard-manager` |
+| Editor surface | TipTap (ProseMirror) with `svelte-tiptap` node views |
 | DOCX reading | `zip` + `quick-xml` (purpose-built reader, see research.md) |
 | Image geometry & codecs | `image`, `kamadak-exif`, `webp` (libwebp) for lossy WebP |
 | SSH / SFTP | `russh` + `russh-sftp` (pure Rust), `tokio` |

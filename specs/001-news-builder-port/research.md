@@ -55,6 +55,17 @@ a heavier bundle and more ceremony for this scope; and no framework at all, whic
 until the crop overlay and the photo list start sharing state. This is a reversible decision
 confined to `crates/desktop/ui` — nothing in `core` depends on it.
 
+**Revisited 2026-09-01 and confirmed.** The strongest argument for React was `react-easy-crop`,
+a mature library that returns crop coordinates in original-image pixels — exactly the shape
+`set_crop` wants — and would have saved roughly a day on the crop overlay. Weighed against it:
+the bundle-size argument for Svelte is weak for an application loading from local disk, but the
+state argument is real. `NewsItem` lives in Rust and the frontend holds a projection
+(`ItemView`), so React's central strength — managing complex client state — goes unused here,
+while its costs (stale closures, re-render discipline) do not. The crop overlay is
+approximately 200 lines of pointer handling, which is a bounded amount of work to own.
+
+Author's decision: Svelte 5.
+
 ---
 
 ## R3. Reading `.docx`, including embedded images and their positions
@@ -246,6 +257,38 @@ a single thin layer.
 
 ---
 
+## R11. The editor surface with inline placement cards
+
+**Decision**: Build the text surface on TipTap (ProseMirror) with `svelte-tiptap`, rendering each
+placement as a custom node view backed by a Svelte component. Do not hand-roll `contenteditable`.
+
+**Rationale**: Deviation D-9 removed marker typing, which makes the editor the most demanding
+part of the frontend: editable text interleaved with non-editable widgets that can be inserted at
+a caret, dragged in from outside, dropped onto one another to form rows, and dragged to new
+positions. Hand-written `contenteditable` handles none of that well — selection across widget
+boundaries, undo, and paste normalisation are exactly where it fails, and each failure is a bug
+an editor will hit in their first hour.
+
+ProseMirror exists for this problem. Its document model is a validated node tree, which maps
+directly onto `body: Vec<Block>` — a paragraph node and a placement node, nothing else in the
+schema. `SvelteNodeViewRenderer` from `svelte-tiptap` lets the placement card be an ordinary
+Svelte component with its own layout dropdown and remove control, so T107 stays a normal
+component rather than DOM surgery.
+
+The constrained schema is what keeps this honest under constitution principle II: with only two
+node types allowed, the editor structurally cannot produce a body the Rust core would reject, and
+`set_body` remains a straight serialisation of the node tree into `BlockInput[]`.
+
+**Alternatives considered**: raw `contenteditable`, rejected above; a plain `textarea` with the
+cards rendered beside it, which is the "storyboard panel" shape the author rejected as indirect;
+Lexical, which is capable but React-first and would drag in what R2 just decided against; Tipex,
+a Svelte-5-native wrapper over TipTap, which is appealing but a thinner project than TipTap
+itself and adds a layer over the node-view API this design leans on most.
+
+**Cost**: TipTap and ProseMirror are a real dependency in the frontend. They stay entirely inside
+`crates/desktop/ui`; `core` and `cli` are untouched, and the published HTML is produced by Rust
+regardless of what the editor is built from.
+
 ## Sources
 
 - [Tauri (software framework) — Wikipedia](https://en.wikipedia.org/wiki/Tauri_(software_framework))
@@ -260,3 +303,6 @@ a single thin layer.
 - [russh-sftp](https://crates.io/crates/russh-sftp) and [russh](https://lib.rs/crates/russh)
 - [openssh-sftp-client](https://github.com/openssh-rust/openssh-sftp-client)
 - [keyring crate](https://docs.rs/keyring)
+- [Tiptap — ProseMirror core concepts](https://tiptap.dev/docs/editor/core-concepts/prosemirror) and [Schema](https://tiptap.dev/docs/editor/core-concepts/schema)
+- [svelte-tiptap](https://www.npmjs.com/package/svelte-tiptap)
+- [Tipex — Svelte 5 editor built on Tiptap](https://tipex.pages.dev/)
