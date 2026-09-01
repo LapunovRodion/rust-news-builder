@@ -1,0 +1,23 @@
+# Rust
+/target
+**/*.rs.bk
+
+# Node / Tauri frontend
+node_modules/
+crates/desktop/ui/dist/
+crates/desktop/ui/.svelte-kit/
+
+# Nix / direnv
+.direnv/
+result
+result-*
+
+# Capture harness working state — goldens themselves ARE committed
+tools/capture-reference/.cache/
+tools/capture-reference/.venv/
+
+# Editor and OS noise
+.idea/
+.vscode/
+*.swp
+.DS_Store
