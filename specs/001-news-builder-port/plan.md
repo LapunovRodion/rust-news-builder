@@ -96,6 +96,60 @@ requires:
 6. Word import now derives placements from embedded image positions (FR-002, FR-003), a
    capability the reference does not have. Marker documents are unaffected (FR-005).
 
+### Deviations found during implementation
+
+Added while implementing Phases 1–2 and the US1/US2/US3 domain code, once the goldens made the
+reference's real behaviour checkable. D-7 to D-9 were already agreed in the spec; D-10 to D-13
+are new, and each was forced by evidence rather than chosen.
+
+7. **Publishing never deletes.** A photo dropped from an item stays on the server as an orphan;
+   the fragment simply stops referencing it. `Transport` has no removal method, so the rule is
+   structural. (Already recorded in spec.md; repeated here for completeness.)
+8. **A slug colliding with a different item's folder is suffixed** rather than written into.
+9. **Marker typing was dropped** in favour of inline placement cards, so `core::markers` parses
+   but never emits.
+10. **Published photo bytes are not byte-identical to the reference's.** Pillow wraps
+    libjpeg-turbo and libwebp; the port encodes through the `image` crate. Two encoders never
+    agree bit for bit. Everything observable *is* identical and is asserted by the goldens: the
+    published file name, the resolved extension, the output dimensions, the quality ladder, and
+    the rule that stops the search. `crates/core/tests/parity_encode.rs` states the boundary.
+11. **`contracts/html-output.md` is wrong in six places**, and the reference wins — the contract
+    itself says the goldens are the specification of record. The renderer therefore emits what
+    `news_builder.py` emits:
+    - every image is wrapped in `<a href … target="_blank" rel="noopener noreferrer"
+      style="text-decoration: none;">`, and the `<img>` carries `loading="lazy"`;
+    - a full-width placement's wrapper is a `<p>`, not a `<div>`;
+    - `alt` is `"{title} - image {N}"`, not empty;
+    - the container style is prefixed with `display: flow-root; width: 100%; box-sizing:
+      border-box;`, and a `container` of `__omit__` drops the wrapping `div` entirely;
+    - published names are `{title-slug}-{NN}.{ext}`, not the source file name, and GIF, BMP and
+      TIFF sources re-encode to `.jpg` — so "keeps its source extension" holds only for JPEG,
+      PNG and WebP;
+    - scaling is by **width**, not by longest edge (`if image.width > max_width`), so a tall
+      narrow portrait is never scaled.
+    `fixtures/reference/markers/fragment.html` shows all of them at once.
+12. **data-model.md's INV-4 is wrong about single-photo rows.** It claims `[images:1]` is
+    normalised to `FullWidth` "matching reference behaviour". The reference does no such thing:
+    only `image`, `image-left` and `image-right` require exactly one index.
+    `fixtures/reference/row-of-one/` pins a one-item row wrapper. No normalisation is performed.
+13. **Three warning variants beyond `contracts/core-api.md`'s five.** Each covers a case where
+    the reference raises and abandons the document, which FR-034 forbids, and SC-007 requires
+    the offending item to be named:
+    - `MalformedMarker { marker, reason }` — marker-shaped text the reference rejects, e.g.
+      `[image:1,2]`. The text is kept as literal prose, so nothing is lost.
+    - `SizeBudgetUnreachable { name, floor_quality, achieved }` — the warning form of the error
+      of the same name, needed because FR-028 says to emit it *and* FR-034 says to keep going.
+    - `UnknownAppearanceKey { key }` — required by contracts/appearance-config.md's
+      "warn, ignore, continue" rule, which had no variant to carry it.
+
+### Dependency added during implementation
+
+`unicode-normalization` — the reference runs NFKD before dropping non-ASCII, which is what turns
+`Café` into `cafe` rather than `caf`. Reproducing that decomposition by hand would be a parity
+risk for one table lookup's worth of saving. It touches neither the network, the image, nor the
+archive path, so the constitution's justification requirement does not bind, but it is recorded
+here anyway.
+
 ### Post-design re-check
 
 Re-evaluated after Phase 1. No gate moved. The two costs worth naming are recorded in

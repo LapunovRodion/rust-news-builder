@@ -35,12 +35,12 @@ Three-crate Rust workspace per plan.md: `crates/core/` (all domain rules), `crat
 
 **Purpose**: Workspace skeleton and the quality gates everything else is measured against
 
-- [ ] T001 Create workspace `Cargo.toml` at repository root with members `crates/core`, `crates/cli`, `crates/desktop`, `tools/capture-reference`, and a `[workspace.dependencies]` table pinning the versions from plan.md
-- [ ] T002 [P] Pin the toolchain in `rust-toolchain.toml` (stable channel, `rustfmt` and `clippy` components, edition 2024)
-- [ ] T003 [P] Add crate-level lint denials to `crates/core/src/lib.rs`: `#![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::exit)]` per constitution principle V
-- [ ] T004 [P] Add `rustfmt.toml` and a `justfile` at repository root exposing the four merge gates: `fmt --check`, `clippy --all-targets -- -D warnings`, `test --workspace`, and the parity fixture suite
+- [X] T001 Create workspace `Cargo.toml` at repository root with members `crates/core`, `crates/cli`, `crates/desktop`, `tools/capture-reference`, and a `[workspace.dependencies]` table pinning the versions from plan.md
+- [X] T002 [P] Pin the toolchain in `rust-toolchain.toml` (stable channel, `rustfmt` and `clippy` components, edition 2024)
+- [X] T003 [P] Add crate-level lint denials to `crates/core/src/lib.rs`: `#![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::exit)]` per constitution principle V
+- [X] T004 [P] Add `rustfmt.toml` and a `justfile` at repository root exposing the four merge gates: `fmt --check`, `clippy --all-targets -- -D warnings`, `test --workspace`, and the parity fixture suite
 - [ ] T005 [P] Scaffold the Tauri application in `crates/desktop/`: `tauri.conf.json` (window with `dragDropEnabled: true`), `src/main.rs`, and `ui/` with Vite + Svelte 5 + TypeScript
-- [ ] T006 [P] Create `.gitignore`, `fixtures/inputs/`, `fixtures/reference/`, and `tools/capture-reference/` directory skeletons
+- [X] T006 [P] Create `.gitignore`, `fixtures/inputs/`, `fixtures/reference/`, and `tools/capture-reference/` directory skeletons
 
 ---
 
@@ -53,25 +53,25 @@ writing domain code before the fixtures exist, so T007–T009 genuinely block ev
 
 ### Parity fixtures (constitution III — must precede all domain code)
 
-- [ ] T007 Assemble the input corpus in `fixtures/inputs/`: `word-with-photos/` (a `.docx` with inline images), `word-anchored/` (floating images), `markers/` (a `.txt` using all four markers), `cyrillic-title/`, `natural-sort/` (photos named `photo1..photo12`), `missing-photo/`, `unused-photo/`, `oversized/`, `portraits/` (20 portrait photographs for the SC-003 benchmark), `mixed-orientation/`
-- [ ] T008 Implement `tools/capture-reference/src/main.rs`: clone `LapunovRodion/news-builder` at a pinned commit into a cache directory, create a virtualenv, install `requirements-news-builder.txt`, run `news_builder.py` over each `fixtures/inputs/*` case with the upload step stubbed, and write fragments plus warning text into `fixtures/reference/<case>/`
-- [ ] T009 Run the harness and commit the generated goldens under `fixtures/reference/`, recording the pinned reference commit in `fixtures/reference/PINNED_COMMIT`
+- [X] T007 Assemble the input corpus in `fixtures/inputs/`: `word-with-photos/` (a `.docx` with inline images), `word-anchored/` (floating images), `markers/` (a `.txt` using all four markers), `cyrillic-title/`, `natural-sort/` (photos named `photo1..photo12`), `missing-photo/`, `unused-photo/`, `oversized/`, `portraits/` (20 portrait photographs for the SC-003 benchmark), `mixed-orientation/`
+- [X] T008 Implement `tools/capture-reference/src/main.rs`: clone `LapunovRodion/news-builder` at a pinned commit into a cache directory, create a virtualenv, install `requirements-news-builder.txt`, run `news_builder.py` over each `fixtures/inputs/*` case with the upload step stubbed, and write fragments plus warning text into `fixtures/reference/<case>/`
+- [X] T009 Run the harness and commit the generated goldens under `fixtures/reference/`, recording the pinned reference commit in `fixtures/reference/PINNED_COMMIT`
 
 ### Core scaffolding
 
-- [ ] T010 [P] Define typed errors and warnings in `crates/core/src/error.rs` per [contracts/core-api.md](./contracts/core-api.md): `Error` with all nine variants and `Warning` with all five, each naming the offending item
-- [ ] T011 [P] Implement the redacting `Secret` newtype in `crates/core/src/secret.rs` with `Debug`/`Display` printing `[redacted]` and a single `expose()` accessor, plus tests in the same file asserting both formatters redact
-- [ ] T012 [P] Define the port traits `FileStore`, `Transport`, `SecretStore`, and `Clock` in `crates/core/src/ports.rs` exactly as specified in [contracts/core-api.md](./contracts/core-api.md)
-- [ ] T013 [P] Implement in-memory fakes for all four ports in `crates/core/tests/support/fakes.rs`, with `RecordingTransport` capturing an ordered log of every operation for the convergence and dry-run assertions
+- [X] T010 [P] Define typed errors and warnings in `crates/core/src/error.rs` per [contracts/core-api.md](./contracts/core-api.md): `Error` with all nine variants and `Warning` with all five, each naming the offending item
+- [X] T011 [P] Implement the redacting `Secret` newtype in `crates/core/src/secret.rs` with `Debug`/`Display` printing `[redacted]` and a single `expose()` accessor, plus tests in the same file asserting both formatters redact
+- [X] T012 [P] Define the port traits `FileStore`, `Transport`, `SecretStore`, and `Clock` in `crates/core/src/ports.rs` exactly as specified in [contracts/core-api.md](./contracts/core-api.md)
+- [X] T013 [P] Implement in-memory fakes for all four ports in `crates/core/tests/support/fakes.rs`, with `RecordingTransport` capturing an ordered log of every operation for the convergence and dry-run assertions
 
 ### Model
 
-- [ ] T014 [P] Implement `NewsItem`, `Block`, `ParagraphKind`, and `Layout` in `crates/core/src/model/item.rs` per [data-model.md](./data-model.md)
-- [ ] T015 [P] Implement `Photo`, `PhotoId`, `PhotoOrigin`, `PhotoSource`, `Adjustments`, `CropRect`, and `NaturalKey` in `crates/core/src/model/photo.rs`
-- [ ] T016 [P] Implement `Appearance` and `StyleSet` in `crates/core/src/model/appearance.rs`, with the built-in appearance reproducing the reference's `DEFAULT_STYLES` and `DEFAULT_CONFIG` values exactly
-- [ ] T017 [P] Implement `ServerConfig`, `ServerConfigRef`, `CredentialRef`, and the `Slug` newtype in `crates/core/src/model/server.rs`
-- [ ] T018 Write invariant tests in `crates/core/tests/model_invariants.rs` covering INV-1 through INV-8 from data-model.md (placement references resolve, slug shape, unique photo ids, layout/count agreement, unique file names, crop within bounds, quality bounds, credential presence)
-- [ ] T019 Implement the appearance configuration loader and validation in `crates/core/src/model/appearance_config.rs` per [contracts/appearance-config.md](./contracts/appearance-config.md), including a test that every `style-presets/*.json` file from the reference loads unmodified
+- [X] T014 [P] Implement `NewsItem`, `Block`, `ParagraphKind`, and `Layout` in `crates/core/src/model/item.rs` per [data-model.md](./data-model.md)
+- [X] T015 [P] Implement `Photo`, `PhotoId`, `PhotoOrigin`, `PhotoSource`, `Adjustments`, `CropRect`, and `NaturalKey` in `crates/core/src/model/photo.rs`
+- [X] T016 [P] Implement `Appearance` and `StyleSet` in `crates/core/src/model/appearance.rs`, with the built-in appearance reproducing the reference's `DEFAULT_STYLES` and `DEFAULT_CONFIG` values exactly
+- [X] T017 [P] Implement `ServerConfig`, `ServerConfigRef`, `CredentialRef`, and the `Slug` newtype in `crates/core/src/model/server.rs`
+- [X] T018 Write invariant tests in `crates/core/tests/model_invariants.rs` covering INV-1 through INV-8 from data-model.md (placement references resolve, slug shape, unique photo ids, layout/count agreement, unique file names, crop within bounds, quality bounds, credential presence)
+- [X] T019 Implement the appearance configuration loader and validation in `crates/core/src/model/appearance_config.rs` per [contracts/appearance-config.md](./contracts/appearance-config.md), including a test that every `style-presets/*.json` file from the reference loads unmodified
 - [ ] T020 [P] Initialise `tracing` in `crates/core/src/lib.rs` with a subscriber configuration that cannot format a `Secret`, and wire module declarations so the crate compiles
 
 **Checkpoint**: Goldens committed, ports faked, model in place — user stories can begin
@@ -88,28 +88,28 @@ text and the same photo order and positions as the source, and no step asked for
 
 ### Tests for User Story 1 ⚠️ Write first, confirm they fail
 
-- [ ] T021 [P] [US1] Golden test in `crates/core/tests/parity_render.rs` comparing rendered fragments against `fixtures/reference/markers/` for each of the four layouts, byte for byte
-- [ ] T022 [P] [US1] Golden test in `crates/core/tests/parity_ordering.rs` asserting natural-sort photo ordering against `fixtures/reference/natural-sort/`
-- [ ] T023 [P] [US1] Unit tests in `crates/core/tests/markers.rs` for marker parsing: all four forms, whitespace variants, multi-index lists, malformed markers, and a marker naming a missing photo producing `Warning::MissingPhoto`
-- [ ] T024 [P] [US1] Unit tests in `crates/core/tests/title_detection.rs` covering a headline as first line, a Markdown `#` heading, a `.docx` Heading-styled paragraph, and a document with no detectable title yielding `None`
-- [ ] T025 [P] [US1] Integration test in `crates/core/tests/import_docx.rs` asserting that `fixtures/inputs/word-with-photos/news.docx` yields paragraphs in document order, one `Photo` per embedded image with `origin: Embedded`, and a `Placement` at each image's document position
-- [ ] T026 [P] [US1] Contract test in `crates/core/tests/html_contract.rs` asserting the rendered fragment contains no `<style>`, no `<link>`, no `class=`, no `<script>`, and no `<!doctype>`/`<html>`/`<body>`
-- [ ] T027 [P] [US1] Determinism test in `crates/core/tests/determinism.rs` building the same item twice in one process and once after a shuffle of internal insertion order, asserting byte-identical fragments
+- [X] T021 [P] [US1] Golden test in `crates/core/tests/parity_render.rs` comparing rendered fragments against `fixtures/reference/markers/` for each of the four layouts, byte for byte
+- [X] T022 [P] [US1] Golden test in `crates/core/tests/parity_ordering.rs` asserting natural-sort photo ordering against `fixtures/reference/natural-sort/`
+- [X] T023 [P] [US1] Unit tests in `crates/core/tests/markers.rs` for marker parsing: all four forms, whitespace variants, multi-index lists, malformed markers, and a marker naming a missing photo producing `Warning::MissingPhoto`
+- [X] T024 [P] [US1] Unit tests in `crates/core/tests/title_detection.rs` covering a headline as first line, a Markdown `#` heading, a `.docx` Heading-styled paragraph, and a document with no detectable title yielding `None`
+- [X] T025 [P] [US1] Integration test in `crates/core/tests/import_docx.rs` asserting that `fixtures/inputs/word-with-photos/news.docx` yields paragraphs in document order, one `Photo` per embedded image with `origin: Embedded`, and a `Placement` at each image's document position
+- [X] T026 [P] [US1] Contract test in `crates/core/tests/html_contract.rs` asserting the rendered fragment contains no `<style>`, no `<link>`, no `class=`, no `<script>`, and no `<!doctype>`/`<html>`/`<body>`
+- [X] T027 [P] [US1] Determinism test in `crates/core/tests/determinism.rs` building the same item twice in one process and once after a shuffle of internal insertion order, asserting byte-identical fragments
 
 ### Implementation for User Story 1
 
-- [ ] T028 [P] [US1] Implement the marker language **parser** in `crates/core/src/markers/mod.rs`, reproducing the reference's `MARKER_PATTERN` semantics including single-photo `Row` normalisation to `FullWidth`. Parse only — no emitter is needed, because the editor works on structure and never sees marker text (deviation D-9)
-- [ ] T029 [P] [US1] Implement natural-sort key construction in `crates/core/src/model/photo.rs`, reproducing the reference's `natural_sort_key` so `photo2` precedes `photo10`
-- [ ] T030 [P] [US1] Implement plain-text and Markdown import in `crates/core/src/import/plain.rs`, including paragraph splitting and body normalisation
-- [ ] T031 [P] [US1] Implement title detection in `crates/core/src/import/title.rs` for all three source formats, returning `None` rather than inventing a title
-- [ ] T032 [US1] Implement the DOCX package reader in `crates/core/src/import/docx.rs` using `zip` and `quick-xml`: walk `word/document.xml` for paragraph text in order, resolve `w:drawing` → `a:blip/@r:embed` against `word/_rels/document.xml.rels`, and extract the referenced `word/media/*` bytes
-- [ ] T033 [US1] Map extracted media to `EmbeddedMedia { after_paragraph }` and convert those positions into `Placement` blocks in `crates/core/src/import/docx.rs` (FR-003)
-- [ ] T034 [US1] Emit `Warning::UnsupportedDocumentFeature` for out-of-scope Word constructs (tables, footnotes, comments, tracked changes) in `crates/core/src/import/docx.rs` rather than failing (FR-034)
-- [ ] T035 [US1] Implement `import_document` in `crates/core/src/import/mod.rs` dispatching on `SourceFormat` and returning `Imported { title, item, warnings }`
-- [ ] T036 [P] [US1] Implement EXIF orientation reading and application in `crates/core/src/photo/orient.rs` using `kamadak-exif`, as an explicit transform over `image` types
-- [ ] T037 [US1] Implement decode, scale-down, and thumbnail generation in `crates/core/src/photo/mod.rs` — never scaling up, and caching thumbnails by photo id and adjustment hash
-- [ ] T038 [US1] Implement the inline-style HTML renderer in `crates/core/src/render/mod.rs` per [contracts/html-output.md](./contracts/html-output.md): container, title, lead and body paragraphs, the four placement forms, clearing elements, and HTML escaping
-- [ ] T039 [US1] Implement the `build` pipeline in `crates/core/src/build.rs` returning `BuildOutput { fragment, processed, warnings }`, consulting no port so the build is offline
+- [X] T028 [P] [US1] Implement the marker language **parser** in `crates/core/src/markers/mod.rs`, reproducing the reference's `MARKER_PATTERN` semantics including single-photo `Row` normalisation to `FullWidth`. Parse only — no emitter is needed, because the editor works on structure and never sees marker text (deviation D-9)
+- [X] T029 [P] [US1] Implement natural-sort key construction in `crates/core/src/model/photo.rs`, reproducing the reference's `natural_sort_key` so `photo2` precedes `photo10`
+- [X] T030 [P] [US1] Implement plain-text and Markdown import in `crates/core/src/import/plain.rs`, including paragraph splitting and body normalisation
+- [X] T031 [P] [US1] Implement title detection in `crates/core/src/import/title.rs` for all three source formats, returning `None` rather than inventing a title
+- [X] T032 [US1] Implement the DOCX package reader in `crates/core/src/import/docx.rs` using `zip` and `quick-xml`: walk `word/document.xml` for paragraph text in order, resolve `w:drawing` → `a:blip/@r:embed` against `word/_rels/document.xml.rels`, and extract the referenced `word/media/*` bytes
+- [X] T033 [US1] Map extracted media to `EmbeddedMedia { after_paragraph }` and convert those positions into `Placement` blocks in `crates/core/src/import/docx.rs` (FR-003)
+- [X] T034 [US1] Emit `Warning::UnsupportedDocumentFeature` for out-of-scope Word constructs (tables, footnotes, comments, tracked changes) in `crates/core/src/import/docx.rs` rather than failing (FR-034)
+- [X] T035 [US1] Implement `import_document` in `crates/core/src/import/mod.rs` dispatching on `SourceFormat` and returning `Imported { title, item, warnings }`
+- [X] T036 [P] [US1] Implement EXIF orientation reading and application in `crates/core/src/photo/orient.rs` using `kamadak-exif`, as an explicit transform over `image` types
+- [X] T037 [US1] Implement decode, scale-down, and thumbnail generation in `crates/core/src/photo/mod.rs` — never scaling up, and caching thumbnails by photo id and adjustment hash
+- [X] T038 [US1] Implement the inline-style HTML renderer in `crates/core/src/render/mod.rs` per [contracts/html-output.md](./contracts/html-output.md): container, title, lead and body paragraphs, the four placement forms, clearing elements, and HTML escaping
+- [X] T039 [US1] Implement the `build` pipeline in `crates/core/src/build.rs` returning `BuildOutput { fragment, processed, warnings }`, consulting no port so the build is offline
 - [ ] T040 [US1] Implement `newsbuilder build` in `crates/cli/src/main.rs` with `--input`, `--images-dir`, `--output`, `--title`, `--news-slug`, `--public-base-url`, `--appearance`, and `--json` per [contracts/cli.md](./contracts/cli.md)
 - [ ] T041 [US1] Implement the Tauri commands `open_document`, `new_item`, `set_title`, `set_body`, `set_slug`, and `build_preview` in `crates/desktop/src/commands/item.rs` per [contracts/desktop-commands.md](./contracts/desktop-commands.md), with the body crossing the boundary as `BlockInput[]` rather than as text
 - [ ] T042 [US1] Implement `ItemView`/`PhotoView` projection and the managed session state holding the open `NewsItem` in `crates/desktop/src/state.rs`, serving thumbnails over the asset protocol so full-size bytes never cross the IPC boundary
@@ -134,22 +134,22 @@ photos land in it, and the fragment references them by public URL.
 
 ### Tests for User Story 2 ⚠️ Write first, confirm they fail
 
-- [ ] T047 [P] [US2] Golden test in `crates/core/tests/parity_slug.rs` covering the full Cyrillic transliteration table including `і ї є ў`, against `fixtures/reference/cyrillic-title/`
-- [ ] T048 [P] [US2] Golden test in `crates/core/tests/parity_paths.rs` asserting remote path and public URL construction, including base values with and without trailing slashes
-- [ ] T049 [P] [US2] Golden test in `crates/core/tests/parity_encode.rs` asserting the quality-step search reaches the same final size and quality as `fixtures/reference/oversized/`
-- [ ] T050 [P] [US2] Convergence test in `crates/core/tests/publish_converge.rs` using `RecordingTransport`: publish twice unchanged and assert the second run issues zero `put` calls; then remove a photo from the item, publish again, and assert its remote file is still listed and untouched (FR-030, deviation D-7, SC-009)
-- [ ] T051 [P] [US2] Dry-run test in `crates/core/tests/publish_dryrun.rs` asserting `PublishMode::DryRun` calls no mutating `Transport` method and returns `dry_run: true` with the full planned URL set
-- [ ] T052 [P] [US2] Refusal tests in `crates/core/tests/publish_refusals.rs`: no credential, unwritable remote base path, and a slug colliding with a different item's folder — each rejected before any photo is processed
-- [ ] T053 [P] [US2] Secret-leak test in `crates/core/tests/no_secret_leak.rs` running a full publish against fakes with a sentinel password, then asserting the sentinel appears in no log line, no error `Display`, no `Debug` output, and no written file (SC-010)
-- [ ] T054 [P] [US2] Warning tests in `crates/core/tests/publish_warnings.rs` for `fixtures/inputs/missing-photo/` and `fixtures/inputs/unused-photo/`, asserting the build completes and unused photos are not uploaded
+- [X] T047 [P] [US2] Golden test in `crates/core/tests/parity_slug.rs` covering the full Cyrillic transliteration table including `і ї є ў`, against `fixtures/reference/cyrillic-title/`
+- [X] T048 [P] [US2] Golden test in `crates/core/tests/parity_paths.rs` asserting remote path and public URL construction, including base values with and without trailing slashes
+- [X] T049 [P] [US2] Golden test in `crates/core/tests/parity_encode.rs` asserting the quality-step search reaches the same final size and quality as `fixtures/reference/oversized/`
+- [X] T050 [P] [US2] Convergence test in `crates/core/tests/publish_converge.rs` using `RecordingTransport`: publish twice unchanged and assert the second run issues zero `put` calls; then remove a photo from the item, publish again, and assert its remote file is still listed and untouched (FR-030, deviation D-7, SC-009)
+- [X] T051 [P] [US2] Dry-run test in `crates/core/tests/publish_dryrun.rs` asserting `PublishMode::DryRun` calls no mutating `Transport` method and returns `dry_run: true` with the full planned URL set
+- [X] T052 [P] [US2] Refusal tests in `crates/core/tests/publish_refusals.rs`: no credential, unwritable remote base path, and a slug colliding with a different item's folder — each rejected before any photo is processed
+- [X] T053 [P] [US2] Secret-leak test in `crates/core/tests/no_secret_leak.rs` running a full publish against fakes with a sentinel password, then asserting the sentinel appears in no log line, no error `Display`, no `Debug` output, and no written file (SC-010)
+- [X] T054 [P] [US2] Warning tests in `crates/core/tests/publish_warnings.rs` for `fixtures/inputs/missing-photo/` and `fixtures/inputs/unused-photo/`, asserting the build completes and unused photos are not uploaded
 
 ### Implementation for User Story 2
 
-- [ ] T055 [P] [US2] Implement slug transliteration in `crates/core/src/publish/slug.rs`, reproducing the reference's `CYRILLIC_TRANSLIT` table exactly, then lowercasing, collapsing non-alphanumerics to single hyphens, and trimming
-- [ ] T056 [P] [US2] Implement remote path and public URL construction in `crates/core/src/publish/paths.rs`, joining with exactly one slash regardless of trailing slashes
-- [ ] T057 [US2] Implement quality-search encoding in `crates/core/src/photo/encode.rs`: encode, measure, step quality down toward the floor until the result fits `max_bytes`, emitting `SizeBudgetUnreachable` at the floor
-- [ ] T058 [US2] Add lossy WebP encoding behind the `webp` cargo feature in `crates/core/src/photo/encode.rs`, preserving the source extension so published URLs match the reference
-- [ ] T059 [US2] Implement publish orchestration in `crates/core/src/publish/mod.rs`: resolve credential, verify the remote base path, compute the desired remote file set, upload only what differs, and suffix a colliding slug — never deleting anything from the server (deviation D-7)
+- [X] T055 [P] [US2] Implement slug transliteration in `crates/core/src/publish/slug.rs`, reproducing the reference's `CYRILLIC_TRANSLIT` table exactly, then lowercasing, collapsing non-alphanumerics to single hyphens, and trimming
+- [X] T056 [P] [US2] Implement remote path and public URL construction in `crates/core/src/publish/paths.rs`, joining with exactly one slash regardless of trailing slashes
+- [X] T057 [US2] Implement quality-search encoding in `crates/core/src/photo/encode.rs`: encode, measure, step quality down toward the floor until the result fits `max_bytes`, emitting `SizeBudgetUnreachable` at the floor
+- [X] T058 [US2] Add lossy WebP encoding behind the `webp` cargo feature in `crates/core/src/photo/encode.rs`, preserving the source extension so published URLs match the reference
+- [X] T059 [US2] Implement publish orchestration in `crates/core/src/publish/mod.rs`: resolve credential, verify the remote base path, compute the desired remote file set, upload only what differs, and suffix a colliding slug — never deleting anything from the server (deviation D-7)
 - [ ] T060 [US2] Implement the `russh` + `russh-sftp` transport adapter in `crates/desktop/src/adapters/transport.rs` and `crates/cli/src/adapters/transport.rs`, supporting both key and password authentication, sharing one implementation module
 - [ ] T061 [US2] Implement the `keyring` secret-store adapter in `crates/core/src/adapters/keyring_store.rs`, reporting `available() == false` when no Secret Service is reachable
 - [ ] T062 [US2] Implement server configuration persistence in `crates/core/src/model/server_store.rs`, writing connection settings to the OS config directory with the credential held only as a `CredentialRef`
@@ -174,16 +174,16 @@ head, adjust the crop in the app, and confirm the published photo matches.
 
 ### Tests for User Story 3 ⚠️ Write first, confirm they fail
 
-- [ ] T069 [P] [US3] Unit tests in `crates/core/tests/frame.rs` for `default_frame`: no crop when the aspect already matches, a 1:3 top/bottom split when cropping a portrait vertically, an even split when cropping horizontally, and a result always inside the image bounds (INV-6)
+- [X] T069 [P] [US3] Unit tests in `crates/core/tests/frame.rs` for `default_frame`: no crop when the aspect already matches, a 1:3 top/bottom split when cropping a portrait vertically, an even split when cropping horizontally, and a result always inside the image bounds (INV-6)
 - [ ] T070 [P] [US3] Test in `crates/core/tests/adjustments.rs` asserting `set_crop(None)` restores full frame and that rotation composes correctly with EXIF orientation
 - [ ] T071 [P] [US3] Source-immutability test in `crates/core/tests/source_untouched.rs` checksumming every file in `fixtures/inputs/portraits/` before and after a full crop-rotate-build cycle and asserting no change (FR-015)
 - [ ] T072 [US3] Benchmark harness in `crates/core/tests/portrait_benchmark.rs` running `default_frame` over all twenty photos in `fixtures/inputs/portraits/` with the expected head region annotated per photo, asserting the head survives in every case (SC-003)
 
 ### Implementation for User Story 3
 
-- [ ] T073 [US3] Implement crop geometry and the headroom-bias rule in `crates/core/src/photo/frame.rs` as pure arithmetic over dimensions, with no image decoding
-- [ ] T074 [US3] Implement `set_crop`, `rotate`, and `default_frame` in `crates/core/src/photo/mod.rs`, recording adjustments on the `Photo` without touching the source
-- [ ] T075 [US3] Apply rotation and crop in the processing pipeline in `crates/core/src/photo/mod.rs`, ordered after EXIF orientation and before scaling per [contracts/html-output.md](./contracts/html-output.md)
+- [X] T073 [US3] Implement crop geometry and the headroom-bias rule in `crates/core/src/photo/frame.rs` as pure arithmetic over dimensions, with no image decoding
+- [X] T074 [US3] Implement `set_crop`, `rotate`, and `default_frame` in `crates/core/src/photo/mod.rs`, recording adjustments on the `Photo` without touching the source
+- [X] T075 [US3] Apply rotation and crop in the processing pipeline in `crates/core/src/photo/mod.rs`, ordered after EXIF orientation and before scaling per [contracts/html-output.md](./contracts/html-output.md)
 - [ ] T076 [US3] Implement the Tauri commands `set_crop`, `rotate_photo`, and `suggest_crop` in `crates/desktop/src/commands/photo.rs`
 - [ ] T077 [US3] Build the crop overlay in `crates/desktop/ui/src/lib/CropOverlay.svelte`: a movable, resizable frame over the photo with a live result and confirm/revert actions
 - [ ] T078 [US3] Add rotate controls and a revert action to `crates/desktop/ui/src/lib/PhotoList.svelte`
@@ -372,3 +372,59 @@ US3 + US4 (they share `PhotoList.svelte`). US5 last, since it depends on the lay
 - Commit after each task or logical group; the four merge gates in the `justfile` must be green
 - Any behaviour that diverges from the Python reference must be added to the plan's declared
   deviations list before it is merged (constitution I)
+
+## Implementation notes (2026-09-01)
+
+**Where the tests actually live.** T023, T024, T025, T069 and T070 named dedicated files under
+`crates/core/tests/`. Their assertions are delivered, but co-located with the code they cover
+(`markers/mod.rs`, `import/title.rs`, `photo/frame.rs`) or folded into the parity suite, which
+compares against the captured goldens rather than against hand-written expectations —
+constitution III prefers the latter wherever a golden exists. The integration files that do
+exist are:
+
+| File | Covers |
+|------|--------|
+| `tests/parity_render.rs` | T021, T026, T027 — fragment bytes, inline-styles-only, determinism |
+| `tests/parity_tables.rs` | T022, T047 — natural sort, transliteration, normalisation, the built-in appearance, preset loading |
+| `tests/parity_text.rs` | T024, T025 — title detection and body normalisation for every case, plus the two real Word documents |
+| `tests/parity_paths.rs` | T048 |
+| `tests/parity_encode.rs` | T049 |
+| `tests/model_invariants.rs` | T018 |
+
+**T020 is only half done.** Module declarations are wired and the crate compiles; the `tracing`
+subscriber is not initialised. That belongs in the two frontends rather than in a library, which
+should not install a global subscriber on its users' behalf — worth confirming before closing.
+
+**T059 is written but unproven.** `core::publish` implements resolution, early refusal,
+convergence and slug suffixing, but T013's in-memory fakes do not exist yet, so T050–T054 have
+not run against it. Treat the publish path as unverified until they do.
+
+## Implementation notes (2026-09-02)
+
+**T059 is now proven.** T013's fakes exist in `crates/core/tests/support/fakes.rs`
+(`FakeFileStore`, `RecordingTransport`, `FakeSecretStore`, `FixedClock`, plus a `server_config`
+helper pointing at the same base path and public URL the goldens were captured under), and
+T050–T054 run against them — 14 tests, all green. `core::publish` needed no changes to pass
+them, which is what "unverified" meant rather than "wrong".
+
+| File | Covers |
+|------|--------|
+| `tests/publish_converge.rs` | T050 — first publish, zero-write re-publish, orphan left in place |
+| `tests/publish_dryrun.rs` | T051 — no mutating call, full planned URL set, convergence in the plan |
+| `tests/publish_refusals.rs` | T052 — no credential, empty credential, unreachable store, unusable base path, collision |
+| `tests/no_secret_leak.rs` | T053 — success path, failing-upload path, refusal path, plus a control |
+| `tests/publish_warnings.rs` | T054 — `missing-photo` and `unused-photo` |
+
+Three things worth recording about how the tests had to be written:
+
+- **The dropped photo in T050 is the *last* one.** Published names carry the photo's position in
+  the item, so dropping one from the middle renumbers everything after it, and the test would
+  measure renaming rather than deletion. The comment in the test says so.
+- **T052's third case is not a refusal.** The task predates deviation D-8: a slug colliding with
+  a different item's folder is *suffixed*, not rejected. The test asserts the suffixing, the
+  `SlugSuffixed` warning, and that the other item's folder is neither added to nor overwritten.
+- **`support::item(case)`** was extracted from `build_case` so the publish tests can get at the
+  item itself. `build_case` now calls it; the parity suite is unchanged and still green.
+
+`T013`'s remaining consumer is the CLI/desktop adapter work — the fakes are also what T100's
+interface-parity test will run both entry points against.
