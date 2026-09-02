@@ -1,0 +1,11 @@
+Mixed Orientation
+
+Lead.
+
+[images:1,2]
+
+Middle.
+
+[image-right:3]
+
+Tail.

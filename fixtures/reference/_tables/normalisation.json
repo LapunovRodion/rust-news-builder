@@ -1,0 +1,59 @@
+{
+  "normalize_text_content": [
+    {
+      "input": "Title  \n\n\nBody​   text",
+      "output": "Title \n\nBody text"
+    },
+    {
+      "input": "  leading and trailing  ",
+      "output": "leading and trailing"
+    },
+    {
+      "input": "a\r\nb\r\nc",
+      "output": "a\nb\nc"
+    },
+    {
+      "input": "one\n\n\n\n\ntwo",
+      "output": "one\n\ntwo"
+    },
+    {
+      "input": "tabs\t\tcollapse",
+      "output": "tabs collapse"
+    },
+    {
+      "input": "﻿bom at the start",
+      "output": "bom at the start"
+    },
+    {
+      "input": "line one\nline two\n\npara two",
+      "output": "line one\nline two\n\npara two"
+    }
+  ],
+  "split_paragraphs": [
+    {
+      "input": "First.\n\n[image:1]\n\nSecond.",
+      "output": [
+        "First.",
+        "[image:1]",
+        "Second."
+      ]
+    },
+    {
+      "input": "a\nb\n\nc\nd",
+      "output": [
+        "a b",
+        "c d"
+      ]
+    },
+    {
+      "input": "\n\n\n",
+      "output": []
+    },
+    {
+      "input": "single",
+      "output": [
+        "single"
+      ]
+    }
+  ]
+}

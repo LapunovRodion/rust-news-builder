@@ -1,0 +1,62 @@
+[
+  {
+    "kind": "paragraph",
+    "text": "The lead paragraph introduces the item."
+  },
+  {
+    "kind": "placement",
+    "layout": "image",
+    "indices": [
+      1
+    ]
+  },
+  {
+    "kind": "paragraph",
+    "text": "A body paragraph follows the full-width photo."
+  },
+  {
+    "kind": "placement",
+    "layout": "images",
+    "indices": [
+      2,
+      3
+    ]
+  },
+  {
+    "kind": "paragraph",
+    "text": "Another body paragraph after the row."
+  },
+  {
+    "kind": "placement",
+    "layout": "image-left",
+    "indices": [
+      4
+    ]
+  },
+  {
+    "kind": "paragraph",
+    "text": "Text that wraps around the left float and keeps going for long enough to matter."
+  },
+  {
+    "kind": "placement",
+    "layout": "image-right",
+    "indices": [
+      5
+    ]
+  },
+  {
+    "kind": "paragraph",
+    "text": "Text that wraps around the right float."
+  },
+  {
+    "kind": "placement",
+    "layout": "image",
+    "indices": [
+      1
+    ]
+  },
+  {
+    "kind": "paragraph",
+    "text": "A closing paragraph, which forces the float to clear before the full-width photo."
+  }
+]

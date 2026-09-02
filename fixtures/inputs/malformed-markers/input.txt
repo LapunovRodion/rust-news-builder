@@ -1,0 +1,7 @@
+Malformed Markers
+
+Not a marker: [image:] and [picture:1] and [image 1] and [IMAGE:1].
+
+Spaced but valid: [images: 1 , 1 ]
+
+[image:1]

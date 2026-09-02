@@ -1,0 +1,5 @@
+One paragraph before.
+
+[image:1]
+
+One paragraph after.

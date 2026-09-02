@@ -1,0 +1,56 @@
+[
+  {
+    "file": "mixed-orientation-01.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 25306,
+    "width": 900,
+    "height": 600,
+    "attempts": 1
+  },
+  {
+    "file": "mixed-orientation-02.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 26466,
+    "width": 600,
+    "height": 900,
+    "attempts": 1
+  },
+  {
+    "file": "mixed-orientation-03.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 26840,
+    "width": 900,
+    "height": 600,
+    "attempts": 1
+  },
+  {
+    "file": "mixed-orientation-04.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 27450,
+    "width": 600,
+    "height": 900,
+    "attempts": 1
+  },
+  {
+    "file": "mixed-orientation-05.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 33630,
+    "width": 800,
+    "height": 800,
+    "attempts": 1
+  },
+  {
+    "file": "mixed-orientation-06.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 25923,
+    "width": 1200,
+    "height": 500,
+    "attempts": 1
+  }
+]

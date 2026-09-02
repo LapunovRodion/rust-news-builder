@@ -1,0 +1,38 @@
+{
+  "title": "Malformed Markers",
+  "slug": "malformed-markers",
+  "news_folder": "malformed-markers",
+  "news_folder_is_timestamped": false,
+  "variants": [
+    {
+      "remote_base_path": "/var/www/html/news",
+      "public_base_url": "https://example.org/news/2026/03/",
+      "remote_path": "/var/www/html/news/malformed-markers",
+      "public_url_base": "https://example.org/news/2026/03/malformed-markers/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news/",
+      "public_base_url": "https://example.org/news/2026/03",
+      "remote_path": "/var/www/html/news/malformed-markers",
+      "public_url_base": "https://example.org/news/2026/03/malformed-markers/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news//",
+      "public_base_url": "https://example.org/news/2026/03//",
+      "remote_path": "/var/www/html/news/malformed-markers",
+      "public_url_base": "https://example.org/news/2026/03/malformed-markers/"
+    },
+    {
+      "remote_base_path": "news",
+      "public_base_url": "https://example.org/",
+      "remote_path": "news/malformed-markers",
+      "public_url_base": "https://example.org/malformed-markers/"
+    },
+    {
+      "remote_base_path": "",
+      "public_base_url": "https://example.org/news",
+      "remote_path": "malformed-markers",
+      "public_url_base": "https://example.org/news/malformed-markers/"
+    }
+  ]
+}

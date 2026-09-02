@@ -1,0 +1,9 @@
+Using title: !!! ??? ...
+News folder: news-YYYYmmdd-HHMMSS
+Remote folder: /var/www/html/news/news-YYYYmmdd-HHMMSS
+Public image URL base: https://example.org/news/2026/03/news-YYYYmmdd-HHMMSS/
+Preparing 1 image(s)
+Processing image 1/1: photo1.jpg
+Rendering HTML fragment: /home/artur/projects/rust-news-builder/fixtures/reference/translit-empty/fragment.html
+Saved processed images to /home/artur/projects/rust-news-builder/fixtures/reference/translit-empty/fragment_processed_images
+HTML fragment written to /home/artur/projects/rust-news-builder/fixtures/reference/translit-empty/fragment.html

@@ -1,0 +1,8 @@
+Whitespace  Normalisation
+
+
+
+A paragraph​ with	spacing   oddities.
+A continuation line joined into the same paragraph.
+
+[image:1]

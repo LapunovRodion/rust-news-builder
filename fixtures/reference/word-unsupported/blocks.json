@@ -1,0 +1,10 @@
+[
+  {
+    "kind": "paragraph",
+    "text": "A paragraph before the table."
+  },
+  {
+    "kind": "paragraph",
+    "text": "A paragraph after the table."
+  }
+]

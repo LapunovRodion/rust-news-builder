@@ -1,0 +1,38 @@
+{
+  "title": "Missing Photo",
+  "slug": "missing-photo",
+  "news_folder": "missing-photo",
+  "news_folder_is_timestamped": false,
+  "variants": [
+    {
+      "remote_base_path": "/var/www/html/news",
+      "public_base_url": "https://example.org/news/2026/03/",
+      "remote_path": "/var/www/html/news/missing-photo",
+      "public_url_base": "https://example.org/news/2026/03/missing-photo/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news/",
+      "public_base_url": "https://example.org/news/2026/03",
+      "remote_path": "/var/www/html/news/missing-photo",
+      "public_url_base": "https://example.org/news/2026/03/missing-photo/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news//",
+      "public_base_url": "https://example.org/news/2026/03//",
+      "remote_path": "/var/www/html/news/missing-photo",
+      "public_url_base": "https://example.org/news/2026/03/missing-photo/"
+    },
+    {
+      "remote_base_path": "news",
+      "public_base_url": "https://example.org/",
+      "remote_path": "news/missing-photo",
+      "public_url_base": "https://example.org/missing-photo/"
+    },
+    {
+      "remote_base_path": "",
+      "public_base_url": "https://example.org/news",
+      "remote_path": "missing-photo",
+      "public_url_base": "https://example.org/news/missing-photo/"
+    }
+  ]
+}

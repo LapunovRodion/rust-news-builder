@@ -1,0 +1,9 @@
+Using title: Row Of One
+News folder: row-of-one
+Remote folder: /var/www/html/news/row-of-one
+Public image URL base: https://example.org/news/2026/03/row-of-one/
+Preparing 1 image(s)
+Processing image 1/1: photo1.jpg
+Rendering HTML fragment: /home/artur/projects/rust-news-builder/fixtures/reference/row-of-one/fragment.html
+Saved processed images to /home/artur/projects/rust-news-builder/fixtures/reference/row-of-one/fragment_processed_images
+HTML fragment written to /home/artur/projects/rust-news-builder/fixtures/reference/row-of-one/fragment.html

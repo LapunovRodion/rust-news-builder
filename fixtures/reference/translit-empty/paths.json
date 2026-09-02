@@ -1,0 +1,38 @@
+{
+  "title": "!!! ??? ...",
+  "slug": "news",
+  "news_folder": "news-YYYYmmdd-HHMMSS",
+  "news_folder_is_timestamped": true,
+  "variants": [
+    {
+      "remote_base_path": "/var/www/html/news",
+      "public_base_url": "https://example.org/news/2026/03/",
+      "remote_path": "/var/www/html/news/news-YYYYmmdd-HHMMSS",
+      "public_url_base": "https://example.org/news/2026/03/news-YYYYmmdd-HHMMSS/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news/",
+      "public_base_url": "https://example.org/news/2026/03",
+      "remote_path": "/var/www/html/news/news-YYYYmmdd-HHMMSS",
+      "public_url_base": "https://example.org/news/2026/03/news-YYYYmmdd-HHMMSS/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news//",
+      "public_base_url": "https://example.org/news/2026/03//",
+      "remote_path": "/var/www/html/news/news-YYYYmmdd-HHMMSS",
+      "public_url_base": "https://example.org/news/2026/03/news-YYYYmmdd-HHMMSS/"
+    },
+    {
+      "remote_base_path": "news",
+      "public_base_url": "https://example.org/",
+      "remote_path": "news/news-YYYYmmdd-HHMMSS",
+      "public_url_base": "https://example.org/news-YYYYmmdd-HHMMSS/"
+    },
+    {
+      "remote_base_path": "",
+      "public_base_url": "https://example.org/news",
+      "remote_path": "news-YYYYmmdd-HHMMSS",
+      "public_url_base": "https://example.org/news/news-YYYYmmdd-HHMMSS/"
+    }
+  ]
+}

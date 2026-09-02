@@ -1,0 +1,38 @@
+{
+  "title": "Ampersands & <angles> and \"quotes\"",
+  "slug": "ampersands-and-angles-and-quotes",
+  "news_folder": "ampersands-and-angles-and-quotes",
+  "news_folder_is_timestamped": false,
+  "variants": [
+    {
+      "remote_base_path": "/var/www/html/news",
+      "public_base_url": "https://example.org/news/2026/03/",
+      "remote_path": "/var/www/html/news/ampersands-and-angles-and-quotes",
+      "public_url_base": "https://example.org/news/2026/03/ampersands-and-angles-and-quotes/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news/",
+      "public_base_url": "https://example.org/news/2026/03",
+      "remote_path": "/var/www/html/news/ampersands-and-angles-and-quotes",
+      "public_url_base": "https://example.org/news/2026/03/ampersands-and-angles-and-quotes/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news//",
+      "public_base_url": "https://example.org/news/2026/03//",
+      "remote_path": "/var/www/html/news/ampersands-and-angles-and-quotes",
+      "public_url_base": "https://example.org/news/2026/03/ampersands-and-angles-and-quotes/"
+    },
+    {
+      "remote_base_path": "news",
+      "public_base_url": "https://example.org/",
+      "remote_path": "news/ampersands-and-angles-and-quotes",
+      "public_url_base": "https://example.org/ampersands-and-angles-and-quotes/"
+    },
+    {
+      "remote_base_path": "",
+      "public_base_url": "https://example.org/news",
+      "remote_path": "ampersands-and-angles-and-quotes",
+      "public_url_base": "https://example.org/news/ampersands-and-angles-and-quotes/"
+    }
+  ]
+}

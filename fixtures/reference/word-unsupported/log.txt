@@ -1,0 +1,10 @@
+Using title: Word Unsupported
+News folder: word-unsupported
+Remote folder: /var/www/html/news/word-unsupported
+Public image URL base: https://example.org/news/2026/03/word-unsupported/
+Preparing 1 image(s)
+Processing image 1/1: photo1.jpg
+Rendering HTML fragment: /home/artur/projects/rust-news-builder/fixtures/reference/word-unsupported/fragment.html
+Saved processed images to /home/artur/projects/rust-news-builder/fixtures/reference/word-unsupported/fragment_processed_images
+Warning: unused images were not inserted into HTML: photo1.jpg
+HTML fragment written to /home/artur/projects/rust-news-builder/fixtures/reference/word-unsupported/fragment.html

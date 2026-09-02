@@ -1,0 +1,9 @@
+Using title: Ampersands & <angles> and "quotes"
+News folder: ampersands-and-angles-and-quotes
+Remote folder: /var/www/html/news/ampersands-and-angles-and-quotes
+Public image URL base: https://example.org/news/2026/03/ampersands-and-angles-and-quotes/
+Preparing 1 image(s)
+Processing image 1/1: photo1.jpg
+Rendering HTML fragment: /home/artur/projects/rust-news-builder/fixtures/reference/escaping/fragment.html
+Saved processed images to /home/artur/projects/rust-news-builder/fixtures/reference/escaping/fragment_processed_images
+HTML fragment written to /home/artur/projects/rust-news-builder/fixtures/reference/escaping/fragment.html

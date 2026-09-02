@@ -1,0 +1,3 @@
+Body paragraph.
+
+[image:1]

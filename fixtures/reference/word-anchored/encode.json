@@ -1,0 +1,29 @@
+[
+  {
+    "file": "word-anchored-01.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 23769,
+    "width": 800,
+    "height": 600,
+    "attempts": 1
+  },
+  {
+    "file": "word-anchored-02.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 23617,
+    "width": 800,
+    "height": 600,
+    "attempts": 1
+  },
+  {
+    "file": "word-anchored-03.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 25043,
+    "width": 800,
+    "height": 600,
+    "attempts": 1
+  }
+]

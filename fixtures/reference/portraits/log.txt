@@ -1,0 +1,29 @@
+Using title: Portraits
+News folder: portraits
+Remote folder: /var/www/html/news/portraits
+Public image URL base: https://example.org/news/2026/03/portraits/
+Preparing 20 image(s)
+Processing image 1/20: portrait01.jpg
+Processing image 2/20: portrait02.jpg
+Processing image 3/20: portrait03.jpg
+Processing image 4/20: portrait04.jpg
+Processing image 5/20: portrait05.jpg
+Processing image 6/20: portrait06.jpg
+Processing image 7/20: portrait07.jpg
+Processing image 8/20: portrait08.jpg
+Processing image 9/20: portrait09.jpg
+Processing image 10/20: portrait10.jpg
+Processing image 11/20: portrait11.jpg
+Processing image 12/20: portrait12.jpg
+Processing image 13/20: portrait13.jpg
+Processing image 14/20: portrait14.jpg
+Processing image 15/20: portrait15.jpg
+Processing image 16/20: portrait16.jpg
+Processing image 17/20: portrait17.jpg
+Processing image 18/20: portrait18.jpg
+Processing image 19/20: portrait19.jpg
+Processing image 20/20: portrait20.jpg
+Rendering HTML fragment: /home/artur/projects/rust-news-builder/fixtures/reference/portraits/fragment.html
+Saved processed images to /home/artur/projects/rust-news-builder/fixtures/reference/portraits/fragment_processed_images
+Warning: unused images were not inserted into HTML: portrait02.jpg, portrait03.jpg, portrait04.jpg, portrait05.jpg, portrait06.jpg, portrait07.jpg, portrait08.jpg, portrait09.jpg, portrait10.jpg, portrait11.jpg, portrait12.jpg, portrait13.jpg, portrait14.jpg, portrait15.jpg, portrait16.jpg, portrait17.jpg, portrait18.jpg, portrait19.jpg, portrait20.jpg
+HTML fragment written to /home/artur/projects/rust-news-builder/fixtures/reference/portraits/fragment.html

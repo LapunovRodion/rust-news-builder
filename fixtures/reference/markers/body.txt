@@ -1,0 +1,21 @@
+The lead paragraph introduces the item.
+
+[image:1]
+
+A body paragraph follows the full-width photo.
+
+[images:2,3]
+
+Another body paragraph after the row.
+
+[image-left:4]
+
+Text that wraps around the left float and keeps going for long enough to matter.
+
+[image-right:5]
+
+Text that wraps around the right float.
+
+[image:1]
+
+A closing paragraph, which forces the float to clear before the full-width photo.

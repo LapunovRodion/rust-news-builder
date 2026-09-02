@@ -1,0 +1,13 @@
+[
+  {
+    "kind": "paragraph",
+    "text": "A paragraph with <b>markup</b>, an & ampersand, and \"double quotes\"."
+  },
+  {
+    "kind": "placement",
+    "layout": "image",
+    "indices": [
+      1
+    ]
+  }
+]

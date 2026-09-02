@@ -1,0 +1,182 @@
+[
+  {
+    "file": "portraits-01.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 36513,
+    "width": 700,
+    "height": 980,
+    "attempts": 1
+  },
+  {
+    "file": "portraits-02.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 45958,
+    "width": 800,
+    "height": 1060,
+    "attempts": 1
+  },
+  {
+    "file": "portraits-03.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 58241,
+    "width": 900,
+    "height": 1140,
+    "attempts": 1
+  },
+  {
+    "file": "portraits-04.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 40651,
+    "width": 600,
+    "height": 1220,
+    "attempts": 1
+  },
+  {
+    "file": "portraits-05.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 35989,
+    "width": 700,
+    "height": 900,
+    "attempts": 1
+  },
+  {
+    "file": "portraits-06.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 40870,
+    "width": 800,
+    "height": 980,
+    "attempts": 1
+  },
+  {
+    "file": "portraits-07.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 51505,
+    "width": 900,
+    "height": 1060,
+    "attempts": 1
+  },
+  {
+    "file": "portraits-08.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 38883,
+    "width": 600,
+    "height": 1140,
+    "attempts": 1
+  },
+  {
+    "file": "portraits-09.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 44852,
+    "width": 700,
+    "height": 1220,
+    "attempts": 1
+  },
+  {
+    "file": "portraits-10.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 39078,
+    "width": 800,
+    "height": 900,
+    "attempts": 1
+  },
+  {
+    "file": "portraits-11.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 50837,
+    "width": 900,
+    "height": 980,
+    "attempts": 1
+  },
+  {
+    "file": "portraits-12.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 35686,
+    "width": 600,
+    "height": 1060,
+    "attempts": 1
+  },
+  {
+    "file": "portraits-13.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 45281,
+    "width": 700,
+    "height": 1140,
+    "attempts": 1
+  },
+  {
+    "file": "portraits-14.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 49734,
+    "width": 800,
+    "height": 1220,
+    "attempts": 1
+  },
+  {
+    "file": "portraits-15.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 43344,
+    "width": 900,
+    "height": 900,
+    "attempts": 1
+  },
+  {
+    "file": "portraits-16.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 34014,
+    "width": 600,
+    "height": 980,
+    "attempts": 1
+  },
+  {
+    "file": "portraits-17.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 39284,
+    "width": 700,
+    "height": 1060,
+    "attempts": 1
+  },
+  {
+    "file": "portraits-18.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 49019,
+    "width": 800,
+    "height": 1140,
+    "attempts": 1
+  },
+  {
+    "file": "portraits-19.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 61794,
+    "width": 900,
+    "height": 1220,
+    "attempts": 1
+  },
+  {
+    "file": "portraits-20.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 30640,
+    "width": 600,
+    "height": 900,
+    "attempts": 1
+  }
+]

@@ -1,0 +1,38 @@
+{
+  "title": "Word Anchored",
+  "slug": "word-anchored",
+  "news_folder": "word-anchored",
+  "news_folder_is_timestamped": false,
+  "variants": [
+    {
+      "remote_base_path": "/var/www/html/news",
+      "public_base_url": "https://example.org/news/2026/03/",
+      "remote_path": "/var/www/html/news/word-anchored",
+      "public_url_base": "https://example.org/news/2026/03/word-anchored/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news/",
+      "public_base_url": "https://example.org/news/2026/03",
+      "remote_path": "/var/www/html/news/word-anchored",
+      "public_url_base": "https://example.org/news/2026/03/word-anchored/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news//",
+      "public_base_url": "https://example.org/news/2026/03//",
+      "remote_path": "/var/www/html/news/word-anchored",
+      "public_url_base": "https://example.org/news/2026/03/word-anchored/"
+    },
+    {
+      "remote_base_path": "news",
+      "public_base_url": "https://example.org/",
+      "remote_path": "news/word-anchored",
+      "public_url_base": "https://example.org/word-anchored/"
+    },
+    {
+      "remote_base_path": "",
+      "public_base_url": "https://example.org/news",
+      "remote_path": "word-anchored",
+      "public_url_base": "https://example.org/news/word-anchored/"
+    }
+  ]
+}

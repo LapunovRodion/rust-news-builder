@@ -1,0 +1,38 @@
+{
+  "title": "і ї є ў Іван Їжак Європа Ўзвышша",
+  "slug": "i-yi-e-u-ivan-yizhak-evropa-uzvyshsha",
+  "news_folder": "i-yi-e-u-ivan-yizhak-evropa-uzvyshsha",
+  "news_folder_is_timestamped": false,
+  "variants": [
+    {
+      "remote_base_path": "/var/www/html/news",
+      "public_base_url": "https://example.org/news/2026/03/",
+      "remote_path": "/var/www/html/news/i-yi-e-u-ivan-yizhak-evropa-uzvyshsha",
+      "public_url_base": "https://example.org/news/2026/03/i-yi-e-u-ivan-yizhak-evropa-uzvyshsha/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news/",
+      "public_base_url": "https://example.org/news/2026/03",
+      "remote_path": "/var/www/html/news/i-yi-e-u-ivan-yizhak-evropa-uzvyshsha",
+      "public_url_base": "https://example.org/news/2026/03/i-yi-e-u-ivan-yizhak-evropa-uzvyshsha/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news//",
+      "public_base_url": "https://example.org/news/2026/03//",
+      "remote_path": "/var/www/html/news/i-yi-e-u-ivan-yizhak-evropa-uzvyshsha",
+      "public_url_base": "https://example.org/news/2026/03/i-yi-e-u-ivan-yizhak-evropa-uzvyshsha/"
+    },
+    {
+      "remote_base_path": "news",
+      "public_base_url": "https://example.org/",
+      "remote_path": "news/i-yi-e-u-ivan-yizhak-evropa-uzvyshsha",
+      "public_url_base": "https://example.org/i-yi-e-u-ivan-yizhak-evropa-uzvyshsha/"
+    },
+    {
+      "remote_base_path": "",
+      "public_base_url": "https://example.org/news",
+      "remote_path": "i-yi-e-u-ivan-yizhak-evropa-uzvyshsha",
+      "public_url_base": "https://example.org/news/i-yi-e-u-ivan-yizhak-evropa-uzvyshsha/"
+    }
+  ]
+}

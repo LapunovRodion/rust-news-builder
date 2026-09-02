@@ -1,0 +1,13 @@
+Using title: Marker Coverage
+News folder: marker-coverage
+Remote folder: /var/www/html/news/marker-coverage
+Public image URL base: https://example.org/news/2026/03/marker-coverage/
+Preparing 5 image(s)
+Processing image 1/5: photo1.jpg
+Processing image 2/5: photo2.jpg
+Processing image 3/5: photo3.jpg
+Processing image 4/5: photo4.jpg
+Processing image 5/5: photo5.jpg
+Rendering HTML fragment: /home/artur/projects/rust-news-builder/fixtures/reference/markers/fragment.html
+Saved processed images to /home/artur/projects/rust-news-builder/fixtures/reference/markers/fragment_processed_images
+HTML fragment written to /home/artur/projects/rust-news-builder/fixtures/reference/markers/fragment.html

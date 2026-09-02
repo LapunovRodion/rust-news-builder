@@ -1,0 +1,12 @@
+Using title: Formats
+News folder: formats
+Remote folder: /var/www/html/news/formats
+Public image URL base: https://example.org/news/2026/03/formats/
+Preparing 4 image(s)
+Processing image 1/4: photo1.jpg
+Processing image 2/4: photo2.png
+Processing image 3/4: photo3.webp
+Processing image 4/4: photo4.gif
+Rendering HTML fragment: /home/artur/projects/rust-news-builder/fixtures/reference/formats/fragment.html
+Saved processed images to /home/artur/projects/rust-news-builder/fixtures/reference/formats/fragment_processed_images
+HTML fragment written to /home/artur/projects/rust-news-builder/fixtures/reference/formats/fragment.html

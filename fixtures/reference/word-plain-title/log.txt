@@ -1,0 +1,10 @@
+Using title: A Plain First Paragraph As Title
+News folder: a-plain-first-paragraph-as-title
+Remote folder: /var/www/html/news/a-plain-first-paragraph-as-title
+Public image URL base: https://example.org/news/2026/03/a-plain-first-paragraph-as-title/
+Preparing 1 image(s)
+Processing image 1/1: photo1.jpg
+Rendering HTML fragment: /home/artur/projects/rust-news-builder/fixtures/reference/word-plain-title/fragment.html
+Saved processed images to /home/artur/projects/rust-news-builder/fixtures/reference/word-plain-title/fragment_processed_images
+Warning: unused images were not inserted into HTML: photo1.jpg
+HTML fragment written to /home/artur/projects/rust-news-builder/fixtures/reference/word-plain-title/fragment.html

@@ -1,0 +1,38 @@
+{
+  "title": "Single Layout",
+  "slug": "single-layout",
+  "news_folder": "single-layout",
+  "news_folder_is_timestamped": false,
+  "variants": [
+    {
+      "remote_base_path": "/var/www/html/news",
+      "public_base_url": "https://example.org/news/2026/03/",
+      "remote_path": "/var/www/html/news/single-layout",
+      "public_url_base": "https://example.org/news/2026/03/single-layout/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news/",
+      "public_base_url": "https://example.org/news/2026/03",
+      "remote_path": "/var/www/html/news/single-layout",
+      "public_url_base": "https://example.org/news/2026/03/single-layout/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news//",
+      "public_base_url": "https://example.org/news/2026/03//",
+      "remote_path": "/var/www/html/news/single-layout",
+      "public_url_base": "https://example.org/news/2026/03/single-layout/"
+    },
+    {
+      "remote_base_path": "news",
+      "public_base_url": "https://example.org/",
+      "remote_path": "news/single-layout",
+      "public_url_base": "https://example.org/single-layout/"
+    },
+    {
+      "remote_base_path": "",
+      "public_base_url": "https://example.org/news",
+      "remote_path": "single-layout",
+      "public_url_base": "https://example.org/news/single-layout/"
+    }
+  ]
+}

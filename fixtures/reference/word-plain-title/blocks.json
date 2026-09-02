@@ -1,0 +1,14 @@
+[
+  {
+    "kind": "paragraph",
+    "text": "The body starts here."
+  },
+  {
+    "kind": "paragraph",
+    "text": "And continues here."
+  },
+  {
+    "kind": "paragraph",
+    "text": "And ends here."
+  }
+]

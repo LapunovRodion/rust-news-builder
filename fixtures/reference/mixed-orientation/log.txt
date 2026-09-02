@@ -1,0 +1,15 @@
+Using title: Mixed Orientation
+News folder: mixed-orientation
+Remote folder: /var/www/html/news/mixed-orientation
+Public image URL base: https://example.org/news/2026/03/mixed-orientation/
+Preparing 6 image(s)
+Processing image 1/6: photo1.jpg
+Processing image 2/6: photo2.jpg
+Processing image 3/6: photo3.jpg
+Processing image 4/6: photo4.jpg
+Processing image 5/6: photo5.jpg
+Processing image 6/6: photo6.jpg
+Rendering HTML fragment: /home/artur/projects/rust-news-builder/fixtures/reference/mixed-orientation/fragment.html
+Saved processed images to /home/artur/projects/rust-news-builder/fixtures/reference/mixed-orientation/fragment_processed_images
+Warning: unused images were not inserted into HTML: photo4.jpg, photo5.jpg, photo6.jpg
+HTML fragment written to /home/artur/projects/rust-news-builder/fixtures/reference/mixed-orientation/fragment.html

@@ -1,0 +1,30 @@
+[
+  {
+    "kind": "paragraph",
+    "text": "The lead paragraph of a Word document."
+  },
+  {
+    "kind": "paragraph",
+    "text": "A second paragraph, after which the first image sits."
+  },
+  {
+    "kind": "paragraph",
+    "text": "A third paragraph continues the story."
+  },
+  {
+    "kind": "paragraph",
+    "text": "A fourth paragraph, followed by the second image."
+  },
+  {
+    "kind": "paragraph",
+    "text": "A fifth paragraph."
+  },
+  {
+    "kind": "paragraph",
+    "text": "A sixth paragraph, followed by the third image."
+  },
+  {
+    "kind": "paragraph",
+    "text": "A closing paragraph."
+  }
+]

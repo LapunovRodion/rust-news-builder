@@ -1,0 +1,29 @@
+[
+  {
+    "kind": "paragraph",
+    "text": "Lead."
+  },
+  {
+    "kind": "placement",
+    "layout": "images",
+    "indices": [
+      1,
+      2
+    ]
+  },
+  {
+    "kind": "paragraph",
+    "text": "Middle."
+  },
+  {
+    "kind": "placement",
+    "layout": "image-right",
+    "indices": [
+      3
+    ]
+  },
+  {
+    "kind": "paragraph",
+    "text": "Tail."
+  }
+]

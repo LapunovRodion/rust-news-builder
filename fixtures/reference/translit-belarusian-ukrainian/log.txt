@@ -1,0 +1,9 @@
+Using title: і ї є ў Іван Їжак Європа Ўзвышша
+News folder: i-yi-e-u-ivan-yizhak-evropa-uzvyshsha
+Remote folder: /var/www/html/news/i-yi-e-u-ivan-yizhak-evropa-uzvyshsha
+Public image URL base: https://example.org/news/2026/03/i-yi-e-u-ivan-yizhak-evropa-uzvyshsha/
+Preparing 1 image(s)
+Processing image 1/1: photo1.jpg
+Rendering HTML fragment: /home/artur/projects/rust-news-builder/fixtures/reference/translit-belarusian-ukrainian/fragment.html
+Saved processed images to /home/artur/projects/rust-news-builder/fixtures/reference/translit-belarusian-ukrainian/fragment_processed_images
+HTML fragment written to /home/artur/projects/rust-news-builder/fixtures/reference/translit-belarusian-ukrainian/fragment.html

@@ -1,0 +1,38 @@
+{
+  "title": "Word With Photos",
+  "slug": "word-with-photos",
+  "news_folder": "word-with-photos",
+  "news_folder_is_timestamped": false,
+  "variants": [
+    {
+      "remote_base_path": "/var/www/html/news",
+      "public_base_url": "https://example.org/news/2026/03/",
+      "remote_path": "/var/www/html/news/word-with-photos",
+      "public_url_base": "https://example.org/news/2026/03/word-with-photos/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news/",
+      "public_base_url": "https://example.org/news/2026/03",
+      "remote_path": "/var/www/html/news/word-with-photos",
+      "public_url_base": "https://example.org/news/2026/03/word-with-photos/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news//",
+      "public_base_url": "https://example.org/news/2026/03//",
+      "remote_path": "/var/www/html/news/word-with-photos",
+      "public_url_base": "https://example.org/news/2026/03/word-with-photos/"
+    },
+    {
+      "remote_base_path": "news",
+      "public_base_url": "https://example.org/",
+      "remote_path": "news/word-with-photos",
+      "public_url_base": "https://example.org/word-with-photos/"
+    },
+    {
+      "remote_base_path": "",
+      "public_base_url": "https://example.org/news",
+      "remote_path": "word-with-photos",
+      "public_url_base": "https://example.org/news/word-with-photos/"
+    }
+  ]
+}

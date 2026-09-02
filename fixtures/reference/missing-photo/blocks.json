@@ -1,0 +1,24 @@
+[
+  {
+    "kind": "paragraph",
+    "text": "Lead."
+  },
+  {
+    "kind": "placement",
+    "layout": "image",
+    "indices": [
+      1
+    ]
+  },
+  {
+    "kind": "placement",
+    "layout": "image",
+    "indices": [
+      7
+    ]
+  },
+  {
+    "kind": "paragraph",
+    "text": "Tail."
+  }
+]

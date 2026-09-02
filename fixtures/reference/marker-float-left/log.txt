@@ -1,0 +1,11 @@
+Using title: Single Layout
+News folder: single-layout
+Remote folder: /var/www/html/news/single-layout
+Public image URL base: https://example.org/news/2026/03/single-layout/
+Preparing 2 image(s)
+Processing image 1/2: photo1.jpg
+Processing image 2/2: photo2.jpg
+Rendering HTML fragment: /home/artur/projects/rust-news-builder/fixtures/reference/marker-float-left/fragment.html
+Saved processed images to /home/artur/projects/rust-news-builder/fixtures/reference/marker-float-left/fragment_processed_images
+Warning: unused images were not inserted into HTML: photo2.jpg
+HTML fragment written to /home/artur/projects/rust-news-builder/fixtures/reference/marker-float-left/fragment.html

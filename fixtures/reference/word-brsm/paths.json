@@ -1,0 +1,38 @@
+{
+  "title": "Мероприятия в рамках Минского городского фестиваля «Молодежь в ритме знаний»",
+  "slug": "meropriyatiya-v-ramkah-minskogo-gorodskogo-festivalya-molodezh-v-ritme-znanii",
+  "news_folder": "meropriyatiya-v-ramkah-minskogo-gorodskogo-festivalya-molodezh-v-ritme-znanii",
+  "news_folder_is_timestamped": false,
+  "variants": [
+    {
+      "remote_base_path": "/var/www/html/news",
+      "public_base_url": "https://example.org/news/2026/03/",
+      "remote_path": "/var/www/html/news/meropriyatiya-v-ramkah-minskogo-gorodskogo-festivalya-molodezh-v-ritme-znanii",
+      "public_url_base": "https://example.org/news/2026/03/meropriyatiya-v-ramkah-minskogo-gorodskogo-festivalya-molodezh-v-ritme-znanii/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news/",
+      "public_base_url": "https://example.org/news/2026/03",
+      "remote_path": "/var/www/html/news/meropriyatiya-v-ramkah-minskogo-gorodskogo-festivalya-molodezh-v-ritme-znanii",
+      "public_url_base": "https://example.org/news/2026/03/meropriyatiya-v-ramkah-minskogo-gorodskogo-festivalya-molodezh-v-ritme-znanii/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news//",
+      "public_base_url": "https://example.org/news/2026/03//",
+      "remote_path": "/var/www/html/news/meropriyatiya-v-ramkah-minskogo-gorodskogo-festivalya-molodezh-v-ritme-znanii",
+      "public_url_base": "https://example.org/news/2026/03/meropriyatiya-v-ramkah-minskogo-gorodskogo-festivalya-molodezh-v-ritme-znanii/"
+    },
+    {
+      "remote_base_path": "news",
+      "public_base_url": "https://example.org/",
+      "remote_path": "news/meropriyatiya-v-ramkah-minskogo-gorodskogo-festivalya-molodezh-v-ritme-znanii",
+      "public_url_base": "https://example.org/meropriyatiya-v-ramkah-minskogo-gorodskogo-festivalya-molodezh-v-ritme-znanii/"
+    },
+    {
+      "remote_base_path": "",
+      "public_base_url": "https://example.org/news",
+      "remote_path": "meropriyatiya-v-ramkah-minskogo-gorodskogo-festivalya-molodezh-v-ritme-znanii",
+      "public_url_base": "https://example.org/news/meropriyatiya-v-ramkah-minskogo-gorodskogo-festivalya-molodezh-v-ritme-znanii/"
+    }
+  ]
+}

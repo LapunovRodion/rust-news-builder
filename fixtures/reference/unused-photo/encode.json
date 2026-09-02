@@ -1,0 +1,29 @@
+[
+  {
+    "file": "unused-photo-01.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 11459,
+    "width": 600,
+    "height": 400,
+    "attempts": 1
+  },
+  {
+    "file": "unused-photo-02.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 11774,
+    "width": 600,
+    "height": 400,
+    "attempts": 1
+  },
+  {
+    "file": "unused-photo-03.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 12746,
+    "width": 600,
+    "height": 400,
+    "attempts": 1
+  }
+]

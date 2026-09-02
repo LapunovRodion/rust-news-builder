@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/home/artur/projects/rust-news-builder/tools/capture-reference/capture.py", line 235, in capture_case
+    result = news_builder.build_with_content(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/artur/projects/rust-news-builder/tools/capture-reference/.cache/news-builder/news_builder.py", line 879, in build_with_content
+    ensure_markers_have_images(blocks, len(source_images))
+  File "/home/artur/projects/rust-news-builder/tools/capture-reference/.cache/news-builder/news_builder.py", line 466, in ensure_markers_have_images
+    raise ValueError(
+ValueError: Marker [image:7] has no matching file. Available images: 1.

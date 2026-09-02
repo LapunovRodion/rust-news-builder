@@ -1,0 +1,11 @@
+[
+  {
+    "file": "oversized-01.jpg",
+    "format": "JPEG",
+    "quality": 55,
+    "size": 506551,
+    "width": 1600,
+    "height": 1200,
+    "attempts": 7
+  }
+]

@@ -1,0 +1,13 @@
+[
+  {
+    "kind": "paragraph",
+    "text": "Body paragraph."
+  },
+  {
+    "kind": "placement",
+    "layout": "image",
+    "indices": [
+      1
+    ]
+  }
+]

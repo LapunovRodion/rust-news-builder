@@ -1,0 +1,38 @@
+{
+  "title": "Natural Sort",
+  "slug": "natural-sort",
+  "news_folder": "natural-sort",
+  "news_folder_is_timestamped": false,
+  "variants": [
+    {
+      "remote_base_path": "/var/www/html/news",
+      "public_base_url": "https://example.org/news/2026/03/",
+      "remote_path": "/var/www/html/news/natural-sort",
+      "public_url_base": "https://example.org/news/2026/03/natural-sort/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news/",
+      "public_base_url": "https://example.org/news/2026/03",
+      "remote_path": "/var/www/html/news/natural-sort",
+      "public_url_base": "https://example.org/news/2026/03/natural-sort/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news//",
+      "public_base_url": "https://example.org/news/2026/03//",
+      "remote_path": "/var/www/html/news/natural-sort",
+      "public_url_base": "https://example.org/news/2026/03/natural-sort/"
+    },
+    {
+      "remote_base_path": "news",
+      "public_base_url": "https://example.org/",
+      "remote_path": "news/natural-sort",
+      "public_url_base": "https://example.org/natural-sort/"
+    },
+    {
+      "remote_base_path": "",
+      "public_base_url": "https://example.org/news",
+      "remote_path": "natural-sort",
+      "public_url_base": "https://example.org/news/natural-sort/"
+    }
+  ]
+}

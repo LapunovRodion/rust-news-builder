@@ -1,0 +1,42 @@
+{
+  "input": [
+    "photo1.jpg",
+    "photo2.jpg",
+    "photo10.jpg",
+    "photo12.jpg",
+    "photo02.jpg",
+    "Photo3.JPG",
+    "img_20260101_001.jpg",
+    "img_20260101_010.jpg",
+    "a.jpg",
+    "a1.jpg",
+    "a10.jpg",
+    "a2.jpg",
+    "1.jpg",
+    "10.jpg",
+    "2.jpg",
+    "фото1.jpg",
+    "фото10.jpg",
+    "фото2.jpg"
+  ],
+  "ordered": [
+    "1.jpg",
+    "2.jpg",
+    "10.jpg",
+    "a1.jpg",
+    "a2.jpg",
+    "a10.jpg",
+    "a.jpg",
+    "img_20260101_001.jpg",
+    "img_20260101_010.jpg",
+    "photo1.jpg",
+    "photo2.jpg",
+    "photo02.jpg",
+    "Photo3.JPG",
+    "photo10.jpg",
+    "photo12.jpg",
+    "фото1.jpg",
+    "фото2.jpg",
+    "фото10.jpg"
+  ]
+}

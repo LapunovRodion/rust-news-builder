@@ -1,0 +1,7 @@
+Single Layout
+
+One paragraph before.
+
+[image-right:1]
+
+One paragraph after.

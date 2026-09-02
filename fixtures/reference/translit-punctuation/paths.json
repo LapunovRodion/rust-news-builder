@@ -1,0 +1,38 @@
+{
+  "title": "Hello & Goodbye -- 2026 (draft) #1!",
+  "slug": "hello-and-goodbye-2026-draft-1",
+  "news_folder": "hello-and-goodbye-2026-draft-1",
+  "news_folder_is_timestamped": false,
+  "variants": [
+    {
+      "remote_base_path": "/var/www/html/news",
+      "public_base_url": "https://example.org/news/2026/03/",
+      "remote_path": "/var/www/html/news/hello-and-goodbye-2026-draft-1",
+      "public_url_base": "https://example.org/news/2026/03/hello-and-goodbye-2026-draft-1/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news/",
+      "public_base_url": "https://example.org/news/2026/03",
+      "remote_path": "/var/www/html/news/hello-and-goodbye-2026-draft-1",
+      "public_url_base": "https://example.org/news/2026/03/hello-and-goodbye-2026-draft-1/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news//",
+      "public_base_url": "https://example.org/news/2026/03//",
+      "remote_path": "/var/www/html/news/hello-and-goodbye-2026-draft-1",
+      "public_url_base": "https://example.org/news/2026/03/hello-and-goodbye-2026-draft-1/"
+    },
+    {
+      "remote_base_path": "news",
+      "public_base_url": "https://example.org/",
+      "remote_path": "news/hello-and-goodbye-2026-draft-1",
+      "public_url_base": "https://example.org/hello-and-goodbye-2026-draft-1/"
+    },
+    {
+      "remote_base_path": "",
+      "public_base_url": "https://example.org/news",
+      "remote_path": "hello-and-goodbye-2026-draft-1",
+      "public_url_base": "https://example.org/news/hello-and-goodbye-2026-draft-1/"
+    }
+  ]
+}

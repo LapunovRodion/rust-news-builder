@@ -1,0 +1,38 @@
+[
+  {
+    "file": "formats-01.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 22700,
+    "width": 800,
+    "height": 600,
+    "attempts": 1
+  },
+  {
+    "file": "formats-02.png",
+    "format": "PNG",
+    "quality": null,
+    "size": 2719,
+    "width": 800,
+    "height": 600,
+    "attempts": 1
+  },
+  {
+    "file": "formats-03.webp",
+    "format": "WEBP",
+    "quality": 85,
+    "size": 3906,
+    "width": 800,
+    "height": 600,
+    "attempts": 1
+  },
+  {
+    "file": "formats-04.jpg",
+    "format": "JPEG",
+    "quality": 85,
+    "size": 24032,
+    "width": 800,
+    "height": 600,
+    "attempts": 1
+  }
+]

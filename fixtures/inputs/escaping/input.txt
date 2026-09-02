@@ -1,0 +1,5 @@
+Ampersands & <angles> and "quotes"
+
+A paragraph with <b>markup</b>, an & ampersand, and "double quotes".
+
+[image:1]

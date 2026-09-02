@@ -1,0 +1,86 @@
+[
+  {
+    "input": "День Конституции",
+    "slug": "den-konstitutsii"
+  },
+  {
+    "input": "Здравствуй, мир!",
+    "slug": "zdravstvui-mir"
+  },
+  {
+    "input": "Ёлки-палки",
+    "slug": "elki-palki"
+  },
+  {
+    "input": "Съезд подъездов",
+    "slug": "sezd-podezdov"
+  },
+  {
+    "input": "Обычный текст",
+    "slug": "obychnyi-tekst"
+  },
+  {
+    "input": "і ї є ў",
+    "slug": "i-yi-e-u"
+  },
+  {
+    "input": "Іван Їжак Європа Ўзвышша",
+    "slug": "ivan-yizhak-evropa-uzvyshsha"
+  },
+  {
+    "input": "Hello & Goodbye",
+    "slug": "hello-and-goodbye"
+  },
+  {
+    "input": "Hello  --  World",
+    "slug": "hello-world"
+  },
+  {
+    "input": "!!!",
+    "slug": "news"
+  },
+  {
+    "input": "",
+    "slug": "news"
+  },
+  {
+    "input": "   ",
+    "slug": "news"
+  },
+  {
+    "input": "Ъ Ь Ы Э Ю Я",
+    "slug": "y-e-yu-ya"
+  },
+  {
+    "input": "щука",
+    "slug": "schuka"
+  },
+  {
+    "input": "ЩУКА",
+    "slug": "schuka"
+  },
+  {
+    "input": "Цыплёнок",
+    "slug": "tsyplenok"
+  },
+  {
+    "input": "2026 год",
+    "slug": "2026-god"
+  },
+  {
+    "input": "Café Naïve",
+    "slug": "cafe-naive"
+  },
+  {
+    "input": "МКА-2026: итоги",
+    "slug": "mka-2026-itogi"
+  },
+  {
+    "input": "a/b\\c",
+    "slug": "a-b-c"
+  },
+  {
+    "input": "tabs\tand\nnewlines",
+    "slug": "tabs-and-newlines"
+  }
+]

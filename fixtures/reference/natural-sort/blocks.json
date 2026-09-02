@@ -1,0 +1,90 @@
+[
+  {
+    "kind": "paragraph",
+    "text": "Lead paragraph."
+  },
+  {
+    "kind": "placement",
+    "layout": "image",
+    "indices": [
+      1
+    ]
+  },
+  {
+    "kind": "placement",
+    "layout": "image",
+    "indices": [
+      2
+    ]
+  },
+  {
+    "kind": "placement",
+    "layout": "image",
+    "indices": [
+      3
+    ]
+  },
+  {
+    "kind": "placement",
+    "layout": "image",
+    "indices": [
+      4
+    ]
+  },
+  {
+    "kind": "placement",
+    "layout": "image",
+    "indices": [
+      5
+    ]
+  },
+  {
+    "kind": "placement",
+    "layout": "image",
+    "indices": [
+      6
+    ]
+  },
+  {
+    "kind": "placement",
+    "layout": "image",
+    "indices": [
+      7
+    ]
+  },
+  {
+    "kind": "placement",
+    "layout": "image",
+    "indices": [
+      8
+    ]
+  },
+  {
+    "kind": "placement",
+    "layout": "image",
+    "indices": [
+      9
+    ]
+  },
+  {
+    "kind": "placement",
+    "layout": "image",
+    "indices": [
+      10
+    ]
+  },
+  {
+    "kind": "placement",
+    "layout": "image",
+    "indices": [
+      11
+    ]
+  },
+  {
+    "kind": "placement",
+    "layout": "image",
+    "indices": [
+      12
+    ]
+  }
+]

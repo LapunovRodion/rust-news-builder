@@ -1,0 +1,13 @@
+[
+  {
+    "kind": "paragraph",
+    "text": "A paragraph with spacing oddities. A continuation line joined into the same paragraph."
+  },
+  {
+    "kind": "placement",
+    "layout": "image",
+    "indices": [
+      1
+    ]
+  }
+]

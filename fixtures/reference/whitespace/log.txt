@@ -1,0 +1,9 @@
+Using title: Whitespace Normalisation
+News folder: whitespace-normalisation
+Remote folder: /var/www/html/news/whitespace-normalisation
+Public image URL base: https://example.org/news/2026/03/whitespace-normalisation/
+Preparing 1 image(s)
+Processing image 1/1: photo1.jpg
+Rendering HTML fragment: /home/artur/projects/rust-news-builder/fixtures/reference/whitespace/fragment.html
+Saved processed images to /home/artur/projects/rust-news-builder/fixtures/reference/whitespace/fragment_processed_images
+HTML fragment written to /home/artur/projects/rust-news-builder/fixtures/reference/whitespace/fragment.html

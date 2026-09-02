@@ -1,0 +1,13 @@
+The lead paragraph of a Word document.
+
+A second paragraph, after which the first image sits.
+
+A third paragraph continues the story.
+
+A fourth paragraph, followed by the second image.
+
+A fifth paragraph.
+
+A sixth paragraph, followed by the third image.
+
+A closing paragraph.

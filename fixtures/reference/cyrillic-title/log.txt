@@ -1,0 +1,9 @@
+Using title: День Конституции Республики Беларусь
+News folder: den-konstitutsii-respubliki-belarus
+Remote folder: /var/www/html/news/den-konstitutsii-respubliki-belarus
+Public image URL base: https://example.org/news/2026/03/den-konstitutsii-respubliki-belarus/
+Preparing 1 image(s)
+Processing image 1/1: photo1.jpg
+Rendering HTML fragment: /home/artur/projects/rust-news-builder/fixtures/reference/cyrillic-title/fragment.html
+Saved processed images to /home/artur/projects/rust-news-builder/fixtures/reference/cyrillic-title/fragment_processed_images
+HTML fragment written to /home/artur/projects/rust-news-builder/fixtures/reference/cyrillic-title/fragment.html

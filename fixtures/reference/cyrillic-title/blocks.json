@@ -1,0 +1,17 @@
+[
+  {
+    "kind": "paragraph",
+    "text": "Абзац с щедрым объёмом текста, ъ и ь, ёлки и юмор."
+  },
+  {
+    "kind": "placement",
+    "layout": "image",
+    "indices": [
+      1
+    ]
+  },
+  {
+    "kind": "paragraph",
+    "text": "Заключительный абзац."
+  }
+]

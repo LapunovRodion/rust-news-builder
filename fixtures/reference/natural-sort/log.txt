@@ -1,0 +1,20 @@
+Using title: Natural Sort
+News folder: natural-sort
+Remote folder: /var/www/html/news/natural-sort
+Public image URL base: https://example.org/news/2026/03/natural-sort/
+Preparing 12 image(s)
+Processing image 1/12: photo1.jpg
+Processing image 2/12: photo2.jpg
+Processing image 3/12: photo3.jpg
+Processing image 4/12: photo4.jpg
+Processing image 5/12: photo5.jpg
+Processing image 6/12: photo6.jpg
+Processing image 7/12: photo7.jpg
+Processing image 8/12: photo8.jpg
+Processing image 9/12: photo9.jpg
+Processing image 10/12: photo10.jpg
+Processing image 11/12: photo11.jpg
+Processing image 12/12: photo12.jpg
+Rendering HTML fragment: /home/artur/projects/rust-news-builder/fixtures/reference/natural-sort/fragment.html
+Saved processed images to /home/artur/projects/rust-news-builder/fixtures/reference/natural-sort/fragment_processed_images
+HTML fragment written to /home/artur/projects/rust-news-builder/fixtures/reference/natural-sort/fragment.html

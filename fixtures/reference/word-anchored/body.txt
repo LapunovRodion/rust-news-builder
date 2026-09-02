@@ -1,0 +1,9 @@
+The lead paragraph of an anchored document.
+
+A second paragraph, with a floating image attached to it.
+
+A third paragraph.
+
+A fourth paragraph, with the second floating image.
+
+A closing paragraph.

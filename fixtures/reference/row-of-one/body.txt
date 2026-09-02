@@ -1,0 +1,5 @@
+Before.
+
+[images:1]
+
+After.

@@ -1,0 +1,1 @@
+Warning: unused images were not inserted into HTML: photo4.jpg, photo5.jpg, photo6.jpg

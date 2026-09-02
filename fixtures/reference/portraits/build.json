@@ -1,0 +1,5 @@
+{
+  "news_folder": "portraits",
+  "remote_path": "/var/www/html/news/portraits",
+  "public_base_url": "https://example.org/news/2026/03/portraits/"
+}

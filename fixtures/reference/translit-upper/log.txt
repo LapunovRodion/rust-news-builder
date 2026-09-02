@@ -1,0 +1,9 @@
+Using title: АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ
+News folder: abvgdeezhziiklmnoprstufhtschshschyeyuya
+Remote folder: /var/www/html/news/abvgdeezhziiklmnoprstufhtschshschyeyuya
+Public image URL base: https://example.org/news/2026/03/abvgdeezhziiklmnoprstufhtschshschyeyuya/
+Preparing 1 image(s)
+Processing image 1/1: photo1.jpg
+Rendering HTML fragment: /home/artur/projects/rust-news-builder/fixtures/reference/translit-upper/fragment.html
+Saved processed images to /home/artur/projects/rust-news-builder/fixtures/reference/translit-upper/fragment_processed_images
+HTML fragment written to /home/artur/projects/rust-news-builder/fixtures/reference/translit-upper/fragment.html

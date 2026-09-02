@@ -1,0 +1,38 @@
+{
+  "title": "День Конституции Республики Беларусь",
+  "slug": "den-konstitutsii-respubliki-belarus",
+  "news_folder": "den-konstitutsii-respubliki-belarus",
+  "news_folder_is_timestamped": false,
+  "variants": [
+    {
+      "remote_base_path": "/var/www/html/news",
+      "public_base_url": "https://example.org/news/2026/03/",
+      "remote_path": "/var/www/html/news/den-konstitutsii-respubliki-belarus",
+      "public_url_base": "https://example.org/news/2026/03/den-konstitutsii-respubliki-belarus/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news/",
+      "public_base_url": "https://example.org/news/2026/03",
+      "remote_path": "/var/www/html/news/den-konstitutsii-respubliki-belarus",
+      "public_url_base": "https://example.org/news/2026/03/den-konstitutsii-respubliki-belarus/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news//",
+      "public_base_url": "https://example.org/news/2026/03//",
+      "remote_path": "/var/www/html/news/den-konstitutsii-respubliki-belarus",
+      "public_url_base": "https://example.org/news/2026/03/den-konstitutsii-respubliki-belarus/"
+    },
+    {
+      "remote_base_path": "news",
+      "public_base_url": "https://example.org/",
+      "remote_path": "news/den-konstitutsii-respubliki-belarus",
+      "public_url_base": "https://example.org/den-konstitutsii-respubliki-belarus/"
+    },
+    {
+      "remote_base_path": "",
+      "public_base_url": "https://example.org/news",
+      "remote_path": "den-konstitutsii-respubliki-belarus",
+      "public_url_base": "https://example.org/news/den-konstitutsii-respubliki-belarus/"
+    }
+  ]
+}

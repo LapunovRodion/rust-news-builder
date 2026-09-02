@@ -1,0 +1,38 @@
+{
+  "title": "Marker Coverage",
+  "slug": "marker-coverage",
+  "news_folder": "marker-coverage",
+  "news_folder_is_timestamped": false,
+  "variants": [
+    {
+      "remote_base_path": "/var/www/html/news",
+      "public_base_url": "https://example.org/news/2026/03/",
+      "remote_path": "/var/www/html/news/marker-coverage",
+      "public_url_base": "https://example.org/news/2026/03/marker-coverage/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news/",
+      "public_base_url": "https://example.org/news/2026/03",
+      "remote_path": "/var/www/html/news/marker-coverage",
+      "public_url_base": "https://example.org/news/2026/03/marker-coverage/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news//",
+      "public_base_url": "https://example.org/news/2026/03//",
+      "remote_path": "/var/www/html/news/marker-coverage",
+      "public_url_base": "https://example.org/news/2026/03/marker-coverage/"
+    },
+    {
+      "remote_base_path": "news",
+      "public_base_url": "https://example.org/",
+      "remote_path": "news/marker-coverage",
+      "public_url_base": "https://example.org/marker-coverage/"
+    },
+    {
+      "remote_base_path": "",
+      "public_base_url": "https://example.org/news",
+      "remote_path": "marker-coverage",
+      "public_url_base": "https://example.org/news/marker-coverage/"
+    }
+  ]
+}

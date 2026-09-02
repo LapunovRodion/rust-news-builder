@@ -1,0 +1,4 @@
+Using title: Missing Photo
+News folder: missing-photo
+Remote folder: /var/www/html/news/missing-photo
+Public image URL base: https://example.org/news/2026/03/missing-photo/

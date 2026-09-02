@@ -1,0 +1,222 @@
+[
+  {
+    "file_name": "portrait01.jpg",
+    "width": 700,
+    "height": 980,
+    "head": {
+      "x": 273,
+      "y": 99,
+      "width": 154,
+      "height": 154
+    }
+  },
+  {
+    "file_name": "portrait02.jpg",
+    "width": 800,
+    "height": 1060,
+    "head": {
+      "x": 312,
+      "y": 145,
+      "width": 176,
+      "height": 176
+    }
+  },
+  {
+    "file_name": "portrait03.jpg",
+    "width": 900,
+    "height": 1140,
+    "head": {
+      "x": 351,
+      "y": 197,
+      "width": 198,
+      "height": 198
+    }
+  },
+  {
+    "file_name": "portrait04.jpg",
+    "width": 600,
+    "height": 1220,
+    "head": {
+      "x": 234,
+      "y": 104,
+      "width": 132,
+      "height": 132
+    }
+  },
+  {
+    "file_name": "portrait05.jpg",
+    "width": 700,
+    "height": 900,
+    "head": {
+      "x": 273,
+      "y": 85,
+      "width": 154,
+      "height": 154
+    }
+  },
+  {
+    "file_name": "portrait06.jpg",
+    "width": 800,
+    "height": 980,
+    "head": {
+      "x": 312,
+      "y": 127,
+      "width": 176,
+      "height": 176
+    }
+  },
+  {
+    "file_name": "portrait07.jpg",
+    "width": 900,
+    "height": 1060,
+    "head": {
+      "x": 351,
+      "y": 176,
+      "width": 198,
+      "height": 198
+    }
+  },
+  {
+    "file_name": "portrait08.jpg",
+    "width": 600,
+    "height": 1140,
+    "head": {
+      "x": 234,
+      "y": 93,
+      "width": 132,
+      "height": 132
+    }
+  },
+  {
+    "file_name": "portrait09.jpg",
+    "width": 700,
+    "height": 1220,
+    "head": {
+      "x": 273,
+      "y": 142,
+      "width": 154,
+      "height": 154
+    }
+  },
+  {
+    "file_name": "portrait10.jpg",
+    "width": 800,
+    "height": 900,
+    "head": {
+      "x": 312,
+      "y": 110,
+      "width": 176,
+      "height": 176
+    }
+  },
+  {
+    "file_name": "portrait11.jpg",
+    "width": 900,
+    "height": 980,
+    "head": {
+      "x": 351,
+      "y": 155,
+      "width": 198,
+      "height": 198
+    }
+  },
+  {
+    "file_name": "portrait12.jpg",
+    "width": 600,
+    "height": 1060,
+    "head": {
+      "x": 234,
+      "y": 82,
+      "width": 132,
+      "height": 132
+    }
+  },
+  {
+    "file_name": "portrait13.jpg",
+    "width": 700,
+    "height": 1140,
+    "head": {
+      "x": 273,
+      "y": 128,
+      "width": 154,
+      "height": 154
+    }
+  },
+  {
+    "file_name": "portrait14.jpg",
+    "width": 800,
+    "height": 1220,
+    "head": {
+      "x": 312,
+      "y": 180,
+      "width": 176,
+      "height": 176
+    }
+  },
+  {
+    "file_name": "portrait15.jpg",
+    "width": 900,
+    "height": 900,
+    "head": {
+      "x": 351,
+      "y": 135,
+      "width": 198,
+      "height": 198
+    }
+  },
+  {
+    "file_name": "portrait16.jpg",
+    "width": 600,
+    "height": 980,
+    "head": {
+      "x": 234,
+      "y": 71,
+      "width": 132,
+      "height": 132
+    }
+  },
+  {
+    "file_name": "portrait17.jpg",
+    "width": 700,
+    "height": 1060,
+    "head": {
+      "x": 273,
+      "y": 113,
+      "width": 154,
+      "height": 154
+    }
+  },
+  {
+    "file_name": "portrait18.jpg",
+    "width": 800,
+    "height": 1140,
+    "head": {
+      "x": 312,
+      "y": 162,
+      "width": 176,
+      "height": 176
+    }
+  },
+  {
+    "file_name": "portrait19.jpg",
+    "width": 900,
+    "height": 1220,
+    "head": {
+      "x": 351,
+      "y": 218,
+      "width": 198,
+      "height": 198
+    }
+  },
+  {
+    "file_name": "portrait20.jpg",
+    "width": 600,
+    "height": 900,
+    "head": {
+      "x": 234,
+      "y": 60,
+      "width": 132,
+      "height": 132
+    }
+  }
+]

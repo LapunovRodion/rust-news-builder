@@ -1,0 +1,3 @@
+A paragraph before the table.
+
+A paragraph after the table.

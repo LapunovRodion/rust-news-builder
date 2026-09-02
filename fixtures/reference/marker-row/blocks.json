@@ -1,0 +1,18 @@
+[
+  {
+    "kind": "paragraph",
+    "text": "One paragraph before."
+  },
+  {
+    "kind": "placement",
+    "layout": "images",
+    "indices": [
+      1,
+      2
+    ]
+  },
+  {
+    "kind": "paragraph",
+    "text": "One paragraph after."
+  }
+]

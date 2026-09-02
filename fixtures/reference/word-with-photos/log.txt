@@ -1,0 +1,13 @@
+Using title: Word With Photos
+News folder: word-with-photos
+Remote folder: /var/www/html/news/word-with-photos
+Public image URL base: https://example.org/news/2026/03/word-with-photos/
+Preparing 4 image(s)
+Processing image 1/4: photo1.jpg
+Processing image 2/4: photo2.jpg
+Processing image 3/4: photo3.jpg
+Processing image 4/4: photo4.jpg
+Rendering HTML fragment: /home/artur/projects/rust-news-builder/fixtures/reference/word-with-photos/fragment.html
+Saved processed images to /home/artur/projects/rust-news-builder/fixtures/reference/word-with-photos/fragment_processed_images
+Warning: unused images were not inserted into HTML: photo1.jpg, photo2.jpg, photo3.jpg, photo4.jpg
+HTML fragment written to /home/artur/projects/rust-news-builder/fixtures/reference/word-with-photos/fragment.html

@@ -1,0 +1,22 @@
+[
+  {
+    "kind": "paragraph",
+    "text": "The lead paragraph of an anchored document."
+  },
+  {
+    "kind": "paragraph",
+    "text": "A second paragraph, with a floating image attached to it."
+  },
+  {
+    "kind": "paragraph",
+    "text": "A third paragraph."
+  },
+  {
+    "kind": "paragraph",
+    "text": "A fourth paragraph, with the second floating image."
+  },
+  {
+    "kind": "paragraph",
+    "text": "A closing paragraph."
+  }
+]

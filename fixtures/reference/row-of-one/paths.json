@@ -1,0 +1,38 @@
+{
+  "title": "Row Of One",
+  "slug": "row-of-one",
+  "news_folder": "row-of-one",
+  "news_folder_is_timestamped": false,
+  "variants": [
+    {
+      "remote_base_path": "/var/www/html/news",
+      "public_base_url": "https://example.org/news/2026/03/",
+      "remote_path": "/var/www/html/news/row-of-one",
+      "public_url_base": "https://example.org/news/2026/03/row-of-one/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news/",
+      "public_base_url": "https://example.org/news/2026/03",
+      "remote_path": "/var/www/html/news/row-of-one",
+      "public_url_base": "https://example.org/news/2026/03/row-of-one/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news//",
+      "public_base_url": "https://example.org/news/2026/03//",
+      "remote_path": "/var/www/html/news/row-of-one",
+      "public_url_base": "https://example.org/news/2026/03/row-of-one/"
+    },
+    {
+      "remote_base_path": "news",
+      "public_base_url": "https://example.org/",
+      "remote_path": "news/row-of-one",
+      "public_url_base": "https://example.org/row-of-one/"
+    },
+    {
+      "remote_base_path": "",
+      "public_base_url": "https://example.org/news",
+      "remote_path": "row-of-one",
+      "public_url_base": "https://example.org/news/row-of-one/"
+    }
+  ]
+}

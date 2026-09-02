@@ -1,0 +1,38 @@
+{
+  "title": "ЕДИНЫЙ УРОК КО ДНЮ ЗНАНИЙ ПРОШЕЛ НА ЮРИДИЧЕСКОМ ФАКУЛЬТЕТЕ",
+  "slug": "edinyi-urok-ko-dnyu-znanii-proshel-na-yuridicheskom-fakultete",
+  "news_folder": "edinyi-urok-ko-dnyu-znanii-proshel-na-yuridicheskom-fakultete",
+  "news_folder_is_timestamped": false,
+  "variants": [
+    {
+      "remote_base_path": "/var/www/html/news",
+      "public_base_url": "https://example.org/news/2026/03/",
+      "remote_path": "/var/www/html/news/edinyi-urok-ko-dnyu-znanii-proshel-na-yuridicheskom-fakultete",
+      "public_url_base": "https://example.org/news/2026/03/edinyi-urok-ko-dnyu-znanii-proshel-na-yuridicheskom-fakultete/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news/",
+      "public_base_url": "https://example.org/news/2026/03",
+      "remote_path": "/var/www/html/news/edinyi-urok-ko-dnyu-znanii-proshel-na-yuridicheskom-fakultete",
+      "public_url_base": "https://example.org/news/2026/03/edinyi-urok-ko-dnyu-znanii-proshel-na-yuridicheskom-fakultete/"
+    },
+    {
+      "remote_base_path": "/var/www/html/news//",
+      "public_base_url": "https://example.org/news/2026/03//",
+      "remote_path": "/var/www/html/news/edinyi-urok-ko-dnyu-znanii-proshel-na-yuridicheskom-fakultete",
+      "public_url_base": "https://example.org/news/2026/03/edinyi-urok-ko-dnyu-znanii-proshel-na-yuridicheskom-fakultete/"
+    },
+    {
+      "remote_base_path": "news",
+      "public_base_url": "https://example.org/",
+      "remote_path": "news/edinyi-urok-ko-dnyu-znanii-proshel-na-yuridicheskom-fakultete",
+      "public_url_base": "https://example.org/edinyi-urok-ko-dnyu-znanii-proshel-na-yuridicheskom-fakultete/"
+    },
+    {
+      "remote_base_path": "",
+      "public_base_url": "https://example.org/news",
+      "remote_path": "edinyi-urok-ko-dnyu-znanii-proshel-na-yuridicheskom-fakultete",
+      "public_url_base": "https://example.org/news/edinyi-urok-ko-dnyu-znanii-proshel-na-yuridicheskom-fakultete/"
+    }
+  ]
+}

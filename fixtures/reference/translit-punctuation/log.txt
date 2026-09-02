@@ -1,0 +1,9 @@
+Using title: Hello & Goodbye -- 2026 (draft) #1!
+News folder: hello-and-goodbye-2026-draft-1
+Remote folder: /var/www/html/news/hello-and-goodbye-2026-draft-1
+Public image URL base: https://example.org/news/2026/03/hello-and-goodbye-2026-draft-1/
+Preparing 1 image(s)
+Processing image 1/1: photo1.jpg
+Rendering HTML fragment: /home/artur/projects/rust-news-builder/fixtures/reference/translit-punctuation/fragment.html
+Saved processed images to /home/artur/projects/rust-news-builder/fixtures/reference/translit-punctuation/fragment_processed_images
+HTML fragment written to /home/artur/projects/rust-news-builder/fixtures/reference/translit-punctuation/fragment.html

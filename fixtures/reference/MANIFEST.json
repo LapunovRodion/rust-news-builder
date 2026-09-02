@@ -1,0 +1,151 @@
+{
+  "commit": "da75c532af495c00c96a8114c5e2c6536ba73260",
+  "cases": [
+    {
+      "case": "cyrillic-title",
+      "document": "input.txt",
+      "rendered": true
+    },
+    {
+      "case": "escaping",
+      "document": "input.txt",
+      "rendered": true
+    },
+    {
+      "case": "formats",
+      "document": "input.txt",
+      "rendered": true
+    },
+    {
+      "case": "malformed-markers",
+      "document": "input.txt",
+      "rendered": true
+    },
+    {
+      "case": "markdown-title",
+      "document": "input.md",
+      "rendered": true
+    },
+    {
+      "case": "marker-float-left",
+      "document": "input.txt",
+      "rendered": true
+    },
+    {
+      "case": "marker-float-right",
+      "document": "input.txt",
+      "rendered": true
+    },
+    {
+      "case": "marker-full-width",
+      "document": "input.txt",
+      "rendered": true
+    },
+    {
+      "case": "marker-row",
+      "document": "input.txt",
+      "rendered": true
+    },
+    {
+      "case": "markers",
+      "document": "input.txt",
+      "rendered": true
+    },
+    {
+      "case": "missing-photo",
+      "document": "input.txt",
+      "rendered": false,
+      "build_error": "Marker [image:7] has no matching file. Available images: 1."
+    },
+    {
+      "case": "mixed-orientation",
+      "document": "input.txt",
+      "rendered": true
+    },
+    {
+      "case": "natural-sort",
+      "document": "input.txt",
+      "rendered": true
+    },
+    {
+      "case": "oversized",
+      "document": "input.txt",
+      "rendered": true
+    },
+    {
+      "case": "portraits",
+      "document": "input.txt",
+      "rendered": true
+    },
+    {
+      "case": "row-of-one",
+      "document": "input.txt",
+      "rendered": true
+    },
+    {
+      "case": "translit-belarusian-ukrainian",
+      "document": "input.txt",
+      "rendered": true
+    },
+    {
+      "case": "translit-empty",
+      "document": "input.txt",
+      "rendered": true
+    },
+    {
+      "case": "translit-lower",
+      "document": "input.txt",
+      "rendered": true
+    },
+    {
+      "case": "translit-punctuation",
+      "document": "input.txt",
+      "rendered": true
+    },
+    {
+      "case": "translit-upper",
+      "document": "input.txt",
+      "rendered": true
+    },
+    {
+      "case": "unused-photo",
+      "document": "input.txt",
+      "rendered": true
+    },
+    {
+      "case": "whitespace",
+      "document": "input.txt",
+      "rendered": true
+    },
+    {
+      "case": "word-anchored",
+      "document": "input.docx",
+      "rendered": true
+    },
+    {
+      "case": "word-brsm",
+      "document": "news.docx",
+      "rendered": false
+    },
+    {
+      "case": "word-den-znaniy",
+      "document": "news.docx",
+      "rendered": false
+    },
+    {
+      "case": "word-plain-title",
+      "document": "input.docx",
+      "rendered": true
+    },
+    {
+      "case": "word-unsupported",
+      "document": "input.docx",
+      "rendered": true
+    },
+    {
+      "case": "word-with-photos",
+      "document": "input.docx",
+      "rendered": true
+    }
+  ]
+}

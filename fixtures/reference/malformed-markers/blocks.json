@@ -1,0 +1,25 @@
+[
+  {
+    "kind": "paragraph",
+    "text": "Not a marker: [image:] and [picture:1] and [image 1] and [IMAGE:1]."
+  },
+  {
+    "kind": "paragraph",
+    "text": "Spaced but valid:"
+  },
+  {
+    "kind": "placement",
+    "layout": "images",
+    "indices": [
+      1,
+      1
+    ]
+  },
+  {
+    "kind": "placement",
+    "layout": "image",
+    "indices": [
+      1
+    ]
+  }
+]
