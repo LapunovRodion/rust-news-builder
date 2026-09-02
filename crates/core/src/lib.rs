@@ -17,11 +17,15 @@
 )]
 #![warn(missing_debug_implementations)]
 
+pub mod build;
 pub mod error;
 pub mod model;
 pub mod photo;
 pub mod ports;
+pub mod publish;
+pub mod render;
 pub mod secret;
 
+pub use build::{BuildContext, BuildOutput, build};
 pub use error::{Error, Result, Warning};
 pub use secret::Secret;
