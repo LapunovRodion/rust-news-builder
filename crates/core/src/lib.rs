@@ -17,3 +17,10 @@
 )]
 #![warn(missing_debug_implementations)]
 
+pub mod error;
+pub mod model;
+pub mod ports;
+pub mod secret;
+
+pub use error::{Error, Result, Warning};
+pub use secret::Secret;
