@@ -19,6 +19,7 @@
 
 pub mod error;
 pub mod model;
+pub mod photo;
 pub mod ports;
 pub mod secret;
 
