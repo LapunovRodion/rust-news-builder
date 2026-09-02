@@ -8,6 +8,8 @@
 
 #![allow(dead_code)]
 
+pub mod fakes;
+
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
