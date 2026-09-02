@@ -1,0 +1,70 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/core",
+    "crates/cli",
+    "crates/desktop",
+    "tools/capture-reference",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
+repository = "https://github.com/LapunovRodion/rust-news-builder"
+
+[workspace.dependencies]
+# Domain crate, depended on by both frontends.
+newsbuilder-core = { path = "crates/core" }
+
+# Errors and diagnostics
+thiserror = "2"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Serialisation
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# DOCX reading (research R3): a purpose-built reader over the package.
+zip = { version = "2", default-features = false, features = ["deflate"] }
+quick-xml = "0.37"
+
+# Image pipeline (research R4)
+image = { version = "0.25", default-features = false, features = [
+    "jpeg", "png", "gif", "bmp", "tiff", "webp",
+] }
+kamadak-exif = "0.6"
+webp = "0.3"
+
+# SSH and SFTP (research R6)
+russh = "0.52"
+russh-sftp = "2"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "io-util", "net"] }
+
+# Credentials (research R7)
+keyring = { version = "3", features = ["sync-secret-service", "windows-native", "apple-native"] }
+
+# CLI
+clap = { version = "4", features = ["derive"] }
+rpassword = "7"
+
+# Slug transliteration. The reference runs NFKD before dropping non-ASCII, which is what
+# turns "Café" into "cafe"; reproducing that decomposition by hand would be a parity risk.
+unicode-normalization = "0.1"
+
+# Paths and URLs
+url = { version = "2", features = ["serde"] }
+directories = "5"
+
+# Time, for the Clock port (contracts/core-api.md)
+time = { version = "0.3", default-features = false, features = ["std", "formatting", "local-offset"] }
+
+# Test support
+pretty_assertions = "1"
+
+[profile.release]
+codegen-units = 1
+lto = true
+strip = true

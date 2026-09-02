@@ -56,6 +56,8 @@
             pkgs.cargo-tauri
             pkgs.openssh
             pkgs.git
+            pkgs.just
+            pkgs.unzip
           ] ++ tauriDeps ++ imageDeps;
 
           shellHook = ''

@@ -1,0 +1,13 @@
+[package]
+name = "capture-reference"
+description = "Regenerates the parity goldens by running the Python reference implementation"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[[bin]]
+name = "capture-reference"
+path = "src/main.rs"

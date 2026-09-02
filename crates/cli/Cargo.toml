@@ -1,0 +1,26 @@
+[package]
+name = "newsbuilder-cli"
+description = "Command-line interface for building and publishing a prepared news item"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "newsbuilder"
+path = "src/main.rs"
+
+[dependencies]
+newsbuilder-core.workspace = true
+clap.workspace = true
+rpassword.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+url.workspace = true
+russh.workspace = true
+russh-sftp.workspace = true
+tokio.workspace = true
+time.workspace = true
