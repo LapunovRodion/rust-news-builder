@@ -1,0 +1,119 @@
+# Platform builds.
+#
+# The desktop half cannot be cross-compiled: Tauri links against the platform's own webview —
+# WebKitGTK, WebView2, WKWebView — so each bundle is built on a runner of that OS. The CLI
+# half has no such constraint and is built in the same matrix only to keep one workflow.
+name: build
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  cli:
+    name: cli (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            artifact: newsbuilder-linux-x86_64
+            binary: target/release/newsbuilder
+          - os: windows-latest
+            artifact: newsbuilder-windows-x86_64
+            binary: target/release/newsbuilder.exe
+          - os: macos-14
+            artifact: newsbuilder-macos-aarch64
+            binary: target/release/newsbuilder
+    steps:
+      - uses: actions/checkout@v4
+
+      # libwebp backs the lossy encoder; the rest of the CLI's dependency graph is pure Rust,
+      # so this is the only system package it needs.
+      - name: System dependencies
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebp-dev
+
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build
+        run: cargo build --release -p newsbuilder-cli
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.binary }}
+
+  desktop:
+    name: desktop (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            bundles: deb,appimage
+            artifact: news-builder-linux
+          - os: windows-latest
+            bundles: nsis
+            artifact: news-builder-windows
+          # tauri.conf.json lists no macOS target, so the bundles are named here rather than
+          # widening the config for every platform.
+          - os: macos-14
+            bundles: dmg,app
+            artifact: news-builder-macos
+    steps:
+      - uses: actions/checkout@v4
+
+      # The GTK stack and the webview. Ubuntu 22.04 rather than 24.04 so the .deb and the
+      # AppImage link against an older glibc and run on more machines.
+      - name: System dependencies
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev libgtk-3-dev libsoup-3.0-dev \
+            librsvg2-dev patchelf libwebp-dev
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: crates/desktop/ui/pnpm-lock.yaml
+
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      # `cargo tauri build` runs `beforeBuildCommand` itself, but the install has to happen
+      # first — a frozen lockfile install is also the check that the lockfile is current.
+      - name: Frontend dependencies
+        working-directory: crates/desktop/ui
+        run: pnpm install --frozen-lockfile
+
+      - name: Tauri CLI
+        run: cargo install tauri-cli --version '^2' --locked
+
+      - name: Build
+        working-directory: crates/desktop
+        run: cargo tauri build --bundles ${{ matrix.bundles }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: |
+            target/release/bundle/**/*.deb
+            target/release/bundle/**/*.AppImage
+            target/release/bundle/**/*.exe
+            target/release/bundle/**/*.dmg
+          if-no-files-found: error
