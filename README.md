@@ -1,7 +1,8 @@
 # News Builder
 
 Turns a Word file, a Markdown file, or a plain-text file into an inline-styled HTML fragment for
-a CMS, and uploads its photos over SFTP.
+a CMS, and uploads its photos over SFTP. The fragment opens with `<hr id="system-readmore"/>`,
+the marker the CMS cuts the announcement at, and everything after it is the detail text.
 
 Two interfaces over one set of rules:
 

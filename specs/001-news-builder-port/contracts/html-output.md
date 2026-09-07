@@ -24,9 +24,13 @@ constitution III compare against it byte for byte.
 
 ## Structure
 
-The fragment is a container holding the title, then the body blocks in order.
+The fragment opens with the CMS's cut marker, then a container holding the title, then the body
+blocks in order. The marker sits outside the container so the cut falls between two complete
+elements; it is this port's own line, and the reference has no equivalent, so the parity suite
+strips it before comparing.
 
 ```html
+<hr id="system-readmore"/>
 <div style="{container}">
   <h1 style="{title}">Escaped Title</h1>
   <p style="{lead}">First paragraph.</p>

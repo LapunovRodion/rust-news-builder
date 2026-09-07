@@ -16,12 +16,24 @@
 //!
 //! The goldens are the specification of record (html-output.md says so itself), so the
 //! reference wins. Deviation D-11 records the contract's errors.
+//!
+//! One line is *not* the reference's: the fragment opens with [`READMORE`], the marker the CMS
+//! cuts the announcement at. It is deliberately outside the container, so the cut falls between
+//! two complete elements rather than inside an unclosed `<div>`. The parity tests strip exactly
+//! that first line before comparing, which is what keeps every other byte pinned.
 
 use std::collections::BTreeMap;
 
 use crate::model::appearance::StyleSet;
 use crate::model::item::{Block, Layout, ParagraphKind};
 use crate::model::photo::PhotoId;
+
+/// The CMS's "read more" cut, the first line of every fragment.
+///
+/// Everything after it is the detail text; the announcement is whatever precedes it, which is
+/// nothing — the whole item goes to the detail page, and the CMS builds the announcement from
+/// its own fields. Kept as one constant because the parity tests strip this exact string.
+pub const READMORE: &str = "<hr id=\"system-readmore\"/>";
 
 /// What the renderer needs to know about one photo.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -44,7 +56,7 @@ pub fn render(
     photos: &BTreeMap<PhotoId, RenderedPhoto>,
 ) -> String {
     let container = styles.container_style();
-    let mut lines: Vec<String> = Vec::new();
+    let mut lines: Vec<String> = vec![READMORE.to_owned()];
 
     if let Some(ref style) = container {
         lines.push(format!("<div style=\"{style}\">"));
@@ -180,11 +192,25 @@ pub fn escape_attribute(value: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{RenderedPhoto, escape_attribute, escape_text, render};
+    use super::{READMORE, RenderedPhoto, escape_attribute, escape_text, render};
     use crate::model::appearance::StyleSet;
     use crate::model::item::{Block, Layout};
     use crate::model::photo::PhotoId;
     use std::collections::BTreeMap;
+
+    #[test]
+    fn every_fragment_opens_with_the_cms_cut_marker() {
+        // Outside the container, so cutting there leaves both halves well-formed.
+        let out = render("День знаний", &[], &StyleSet::built_in(), &BTreeMap::new());
+        let mut lines = out.lines();
+        assert_eq!(lines.next(), Some(READMORE));
+        assert!(
+            lines
+                .next()
+                .is_some_and(|line| line.starts_with("<div style=")),
+            "the marker is inside the container:\n{out}"
+        );
+    }
 
     fn photos(count: usize) -> BTreeMap<PhotoId, RenderedPhoto> {
         (1..=count)
@@ -402,8 +428,8 @@ mod tests {
             &photos(1),
         );
         assert!(
-            fragment.starts_with("  <h1 "),
-            "unexpected start: {fragment:.60}"
+            fragment.starts_with(&format!("{READMORE}\n  <h1 ")),
+            "unexpected start: {fragment:.80}"
         );
         assert!(!fragment.trim_end().ends_with("</div>\n</div>"));
     }

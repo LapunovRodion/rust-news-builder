@@ -23,13 +23,14 @@ fn every_comparable_case_renders_byte_for_byte() {
             continue;
         };
         let expected = support::golden(case, "fragment.html");
-        if output.fragment != expected {
+        let rendered = support::without_readmore(&output.fragment);
+        if rendered != expected {
             failed.push(case.clone());
             // Show the first difference for the first failure only; a wall of diffs for
             // twenty cases helps nobody.
             if failed.len() == 1 {
                 assert_eq!(
-                    output.fragment, expected,
+                    rendered, expected,
                     "case `{case}` diverged from the reference"
                 );
             }
@@ -54,7 +55,7 @@ fn each_of_the_four_layouts_matches_on_its_own() {
         let output =
             support::build_case(case).unwrap_or_else(|| panic!("case `{case}` should build"));
         assert_eq!(
-            output.fragment,
+            support::without_readmore(&output.fragment),
             support::golden(case, "fragment.html"),
             "layout case `{case}`"
         );
@@ -67,7 +68,7 @@ fn a_row_of_one_photo_stays_a_row() {
     // reference behaviour". The reference does no such thing, and this golden proves it.
     let output = support::build_case("row-of-one").expect("row-of-one should build");
     let expected = support::golden("row-of-one", "fragment.html");
-    assert_eq!(output.fragment, expected);
+    assert_eq!(support::without_readmore(&output.fragment), expected);
     assert!(
         expected.contains("display: flex"),
         "the reference rendered a row wrapper, not a full-width placement"

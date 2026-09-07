@@ -65,6 +65,21 @@ pub fn golden_dir(case: &str) -> PathBuf {
     repo_root().join("fixtures/reference").join(case)
 }
 
+/// A fragment as the reference would have written it: without the CMS cut marker.
+///
+/// The marker is this port's own first line and the reference has no equivalent, so a
+/// byte-for-byte comparison strips it — and asserts it was there, because a marker that stopped
+/// being emitted must fail the parity suite rather than quietly pass it.
+pub fn without_readmore(fragment: &str) -> String {
+    let marker = format!("{}\n", newsbuilder_core::render::READMORE);
+    fragment
+        .strip_prefix(&marker)
+        .unwrap_or_else(|| {
+            panic!("the fragment does not open with the CMS cut marker:\n{fragment}")
+        })
+        .to_owned()
+}
+
 /// Reads a golden file, failing with a message that says how to regenerate it.
 pub fn golden(case: &str, name: &str) -> String {
     let path = golden_dir(case).join(name);
