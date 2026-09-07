@@ -25,9 +25,30 @@ use crate::model::photo::{Adjustments, CropRect, Orientation, Photo, PhotoId, Qu
 pub use encode::{Encoded, OutputFormat};
 pub use frame::{AspectRatio, clamp_to_bounds, default_frame};
 
-/// The formats FR-011 admits, with the extension each is published under.
-const SUPPORTED_EXTENSIONS: [&str; 8] = [
-    ".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".tif", ".tiff",
+/// The formats FR-011 admits, by the extensions they arrive under.
+///
+/// Several names for one container is normal and not a special case: `.jfif`, `.jpe` and
+/// `.jif` are what Windows, Outlook and browsers call a JPEG when they save one, and a photo
+/// that arrives under any of them publishes as `.jpg` like every other JPEG — the container
+/// decides the published name, not the name it came in with.
+///
+/// `pub` because the desktop's file dialog keeps the same list and a test holds the two
+/// together; a list maintained twice by hand is how one of them goes stale.
+pub const SUPPORTED_EXTENSIONS: [&str; 11] = [
+    ".jpg", ".jpeg", ".jfif", ".jpe", ".jif", ".png", ".webp", ".gif", ".bmp", ".tif", ".tiff",
+];
+
+/// Image formats this build cannot decode, and what to do about each.
+///
+/// Kept apart from "not an image at all" because the two need different sentences. A `.heic`
+/// from a phone is a photograph; telling its editor it is not an image format sends them
+/// looking for a corrupt file rather than to the converter. Reading these needs libheif or
+/// libdav1d — C libraries the build does not carry.
+const UNDECODABLE_IMAGE_EXTENSIONS: [(&str, &str); 4] = [
+    (".heic", "HEIC"),
+    (".heif", "HEIF"),
+    (".hif", "HEIF"),
+    (".avif", "AVIF"),
 ];
 
 /// What a file's bytes turn out to be, before any work is done on it.
@@ -74,6 +95,18 @@ pub fn extension_of(file_name: &str) -> String {
 pub fn accept(file_name: &str, bytes: &[u8]) -> std::result::Result<Probe, Warning> {
     if !extension_is_supported(file_name) {
         let extension = extension_of(file_name);
+        if let Some((_, format)) = UNDECODABLE_IMAGE_EXTENSIONS
+            .iter()
+            .find(|(ext, _)| extension == *ext)
+        {
+            return Err(Warning::PhotoSkipped {
+                name: file_name.to_owned(),
+                reason: format!(
+                    "{format} is a format this tool cannot read; convert the photo to JPEG and \
+                     add it again"
+                ),
+            });
+        }
         let what = if extension.is_empty() {
             "it has no file extension".to_owned()
         } else {
@@ -436,7 +469,8 @@ mod tests {
     #[test]
     fn the_formats_fr_011_lists_are_accepted() {
         for name in [
-            "a.jpg", "a.JPEG", "a.png", "a.webp", "a.gif", "a.bmp", "a.tif", "a.tiff",
+            "a.jpg", "a.JPEG", "a.jfif", "a.JFIF", "a.jpe", "a.jif", "a.png", "a.webp", "a.gif",
+            "a.bmp", "a.tif", "a.tiff",
         ] {
             assert!(extension_is_supported(name), "{name}");
         }
@@ -450,6 +484,8 @@ mod tests {
             "archive.zip",
             "photo",
             "photo.jpg.txt",
+            "IMG_0009.heic",
+            "shot.avif",
         ] {
             assert!(!extension_is_supported(name), "{name}");
         }

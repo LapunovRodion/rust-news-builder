@@ -24,7 +24,15 @@
     const chosen = await open({
       multiple: true,
       filters: [
-        { name: 'Изображения', extensions: ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'tif', 'tiff'] },
+        {
+          name: 'Изображения',
+          // Kept in step with `newsbuilder_core::photo::SUPPORTED_EXTENSIONS` by a test in the
+          // Rust crate: a dialog that offers fewer formats than the core accepts is a file the
+          // editor cannot select and cannot explain.
+          extensions: [
+            'jpg', 'jpeg', 'jfif', 'jpe', 'jif', 'png', 'webp', 'gif', 'bmp', 'tif', 'tiff',
+          ],
+        },
       ],
     });
     if (!chosen) return;

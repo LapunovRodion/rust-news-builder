@@ -62,7 +62,8 @@ fn the_reason_names_the_file_and_says_what_was_wrong() {
 #[test]
 fn every_format_fr_011_lists_is_accepted_by_name() {
     for name in [
-        "a.jpg", "a.jpeg", "a.JPG", "a.png", "a.webp", "a.gif", "a.bmp", "a.tif", "a.tiff",
+        "a.jpg", "a.jpeg", "a.JPG", "a.jfif", "a.JFIF", "a.jpe", "a.jif", "a.png", "a.webp",
+        "a.gif", "a.bmp", "a.tif", "a.tiff",
     ] {
         assert!(extension_is_supported(name), "{name}");
     }
@@ -78,6 +79,10 @@ fn everything_else_is_turned_away_by_name() {
         "photo",
         "photo.jpg.txt",
         "photo.svg",
+        // An image format, but not one this build decodes. It is refused by name like the
+        // rest; only the sentence it is refused with differs.
+        "IMG_0009.heic",
+        "shot.avif",
     ] {
         assert!(!extension_is_supported(name), "{name}");
     }
@@ -136,4 +141,81 @@ fn a_rejected_file_does_not_consume_a_photo_id() {
         vec![bytes_intake("one.jpg", jpeg_bytes(60, 40, 1))],
     );
     assert_eq!(item.photos[0].id, second.photos[0].id);
+}
+
+#[test]
+fn a_jfif_is_a_jpeg_and_is_accepted() {
+    // `.jfif` is what Windows, Outlook and browsers call a JPEG when they save one. The bytes
+    // are a JPEG, the decoder reads them, and only the name list stood in the way.
+    let mut item = NewsItem::new();
+    let added = add_photos(
+        &mut item,
+        vec![bytes_intake("scan.jfif", jpeg_bytes(60, 40, 7))],
+    );
+
+    assert_eq!(added.ids.len(), 1, "warnings: {:?}", added.warnings);
+    assert!(skipped_names(&added.warnings).is_empty());
+    assert_eq!(item.photos[0].file_name, "scan.jfif");
+}
+
+#[test]
+fn a_jfif_publishes_as_jpg() {
+    // The alias must not reach the published URL: the container is a JPEG, so the name is one.
+    use newsbuilder_core::build::{BuildContext, EmbeddedBytes, build};
+    use newsbuilder_core::model::item::{Block, Layout};
+    use newsbuilder_core::model::server::Slug;
+
+    let mut item = NewsItem::new();
+    item.title = "День Конституции".to_owned();
+    item.slug = Slug::parse("den-konstitutsii").expect("well formed");
+    let added = add_photos(
+        &mut item,
+        vec![bytes_intake("scan.jfif", jpeg_bytes(60, 40, 7))],
+    );
+    item.body.push(Block::Placement {
+        photos: vec![added.ids[0]],
+        layout: Layout::FullWidth,
+    });
+
+    let output = build(
+        &item,
+        &BuildContext::preview(item.slug.clone()),
+        &EmbeddedBytes,
+    )
+    .expect("the item builds");
+
+    let names: Vec<&str> = output
+        .processed
+        .iter()
+        .map(|p| p.file_name.as_str())
+        .collect();
+    assert_eq!(names, vec!["den-konstitutsii-01.jpg"]);
+}
+
+#[test]
+fn a_heic_is_refused_by_the_format_it_is_rather_than_by_being_unrecognised() {
+    // It *is* an image format; this build simply cannot decode one. Saying otherwise sends the
+    // editor looking for a corrupt file instead of converting it (FR-011's "named reason").
+    let mut item = NewsItem::new();
+    let added = add_photos(
+        &mut item,
+        vec![bytes_intake("IMG_0009.HEIC", vec![0u8; 64])],
+    );
+    let Some(Warning::PhotoSkipped { name, reason }) = added.warnings.first() else {
+        panic!("expected one PhotoSkipped, got {:?}", added.warnings)
+    };
+
+    assert_eq!(name, "IMG_0009.HEIC");
+    assert!(
+        !reason.contains("is not an image format"),
+        "HEIC is an image format; the refusal must not claim otherwise: {reason}"
+    );
+    assert!(
+        reason.to_ascii_lowercase().contains("heic"),
+        "the reason should name the format: {reason}"
+    );
+    assert!(
+        reason.contains("convert"),
+        "the reason should say what to do instead: {reason}"
+    );
 }

@@ -134,9 +134,14 @@ Files in `--images-dir` that are not images are passed over in silence — a str
 a photo folder is not something you need telling about. A file that *looks* like an image and
 will not decode is a different matter, and warns by name.
 
-Accepted photo formats: `.jpg`, `.jpeg`, `.png`, `.webp`, `.gif`, `.bmp`, `.tif`, `.tiff`. The
-container decides, not the name: a `.tmp` inside a Word package that is really a JPEG publishes
-correctly.
+Accepted photo formats: `.jpg`, `.jpeg`, `.jfif`, `.jpe`, `.jif`, `.png`, `.webp`, `.gif`,
+`.bmp`, `.tif`, `.tiff`. The container decides, not the name: a `.tmp` inside a Word package
+that is really a JPEG publishes correctly, and the four JPEG aliases publish as `.jpg` like any
+other JPEG.
+
+**HEIC, HEIF and AVIF are not read.** Decoding them needs libheif or libdav1d — C libraries this
+build does not carry — so a photo in one of those formats is refused by name, with a reason that
+says to convert it to JPEG first.
 
 ### One refusal
 

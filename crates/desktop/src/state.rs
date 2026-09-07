@@ -700,6 +700,27 @@ mod tests {
         }
     }
 
+    /// Two lists of the same thing, kept honest.
+    ///
+    /// The file dialog's filter is written in Svelte and cannot read a Rust constant, so it
+    /// carries its own copy. A copy that falls behind is a format the core would accept and the
+    /// editor cannot select — which is exactly how `.jfif` came to be unreachable.
+    #[test]
+    fn the_file_dialog_offers_every_format_the_core_accepts() {
+        let picker = std::fs::read_to_string(
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("ui/src/lib/PhotoList.svelte"),
+        )
+        .expect("the photo list component");
+
+        for extension in newsbuilder_core::photo::SUPPORTED_EXTENSIONS {
+            let quoted = format!("'{}'", extension.trim_start_matches('.'));
+            assert!(
+                picker.contains(&quoted),
+                "the file dialog does not offer {extension}, so it cannot be picked"
+            );
+        }
+    }
+
     /// The form the protocol handler decodes back into a path.
     #[test]
     fn an_asset_url_percent_encodes_the_whole_path() {
