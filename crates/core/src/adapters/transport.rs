@@ -18,10 +18,14 @@
 //!
 //! [`Secret::expose`] is called in exactly one place in this crate, and it is here.
 
+use std::ffi::OsString;
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
 use russh::client::{self, AuthResult, Handle};
-use russh::keys::{PrivateKeyWithHashAlg, load_secret_key};
+use russh::keys::known_hosts::known_host_keys_path;
+use russh::keys::ssh_key::PublicKey;
+use russh::keys::{PrivateKeyWithHashAlg, check_known_hosts_path, load_secret_key};
 use russh_sftp::client::SftpSession;
 use russh_sftp::protocol::StatusCode;
 use tokio::io::AsyncWriteExt;
@@ -35,11 +39,102 @@ use crate::secret::Secret;
 /// Why a host key was turned down, carried out of the async handler.
 type Rejection = Arc<Mutex<Option<String>>>;
 
-/// Verifies the server's identity against `~/.ssh/known_hosts`.
+/// Where the host keys are recorded.
+///
+/// Resolved here rather than by `russh`, because `russh`'s own resolution is wrong on Windows:
+/// it reads `%USERPROFILE%\ssh\known_hosts`, without the dot, while `ssh.exe` writes
+/// `%USERPROFILE%\.ssh\known_hosts` (russh 0.52). Every publish from a Windows machine
+/// therefore reported an unknown host, however many times the operator had accepted the key in
+/// a terminal — and a missing file is indistinguishable from an unknown host inside `russh`, so
+/// the message could not say what was actually wrong.
+///
+/// `SSH_KNOWN_HOSTS` overrides the location, for a layout that is neither.
+fn known_hosts_path() -> Option<PathBuf> {
+    known_hosts_at(std::env::var_os("SSH_KNOWN_HOSTS"), home_dir())
+}
+
+/// The rule itself, with both of its inputs passed in so it can be tested without touching the
+/// environment of the process running the test.
+fn known_hosts_at(explicit: Option<OsString>, home: Option<PathBuf>) -> Option<PathBuf> {
+    match explicit.filter(|value| !value.is_empty()) {
+        Some(value) => Some(PathBuf::from(value)),
+        None => home.map(|home| home.join(".ssh").join("known_hosts")),
+    }
+}
+
+/// The account's home directory, from the environment first — which is both what `ssh` itself
+/// does and what lets the end-to-end test redirect `HOME` away from the developer's real
+/// `known_hosts`.
+fn home_dir() -> Option<PathBuf> {
+    let variable = if cfg!(windows) { "USERPROFILE" } else { "HOME" };
+    if let Some(home) = std::env::var_os(variable).filter(|value| !value.is_empty()) {
+        return Some(PathBuf::from(home));
+    }
+    directories::UserDirs::new().map(|dirs| dirs.home_dir().to_owned())
+}
+
+/// Verifies the server's identity against the recorded host keys.
 struct HostKeyCheck {
     host: String,
     port: u16,
+    /// Resolved once, before connecting, so every message can name the file actually read.
+    known_hosts: Option<PathBuf>,
     rejected: Rejection,
+}
+
+impl HostKeyCheck {
+    /// Why a key that did not match did not match.
+    ///
+    /// `check_known_hosts_path` answers `false` both when the file records nothing for this host
+    /// and when it records a key of another type. The two have different fixes, so they are told
+    /// apart here rather than reported as one.
+    fn unmatched(&self, path: &Path, offered: &PublicKey) -> String {
+        let recorded = known_host_keys_path(&self.host, self.port, path).unwrap_or_default();
+        if let Some(types) = recorded_types(&recorded) {
+            return format!(
+                "{} records a key for {}:{}, but only as {types}, and the server offered {}. \
+                 Record that one too, with `ssh-keyscan -p {} -t {} {}`, then publish again.",
+                path.display(),
+                self.host,
+                self.port,
+                offered.algorithm().as_str(),
+                self.port,
+                offered.algorithm().as_str(),
+                self.host,
+            );
+        }
+
+        // Refusing an unknown host is the safe answer, and the message says exactly how to make
+        // it known — which `ssh` itself would have done on a first connection.
+        let absent = if path.exists() {
+            ""
+        } else {
+            " That file does not exist."
+        };
+        format!(
+            "the host key for {}:{} is not in {}.{absent} Connect once with `ssh -p {} {}` and \
+             accept the key, or add it with `ssh-keyscan`, then publish again.",
+            self.host,
+            self.port,
+            path.display(),
+            self.port,
+            self.host
+        )
+    }
+}
+
+/// The key types recorded for a host, as a readable list, or `None` if none are.
+fn recorded_types(recorded: &[(usize, PublicKey)]) -> Option<String> {
+    if recorded.is_empty() {
+        return None;
+    }
+    let mut types: Vec<String> = recorded
+        .iter()
+        .map(|(_, key)| key.algorithm().as_str().to_owned())
+        .collect();
+    types.sort_unstable();
+    types.dedup();
+    Some(types.join(", "))
 }
 
 impl client::Handler for HostKeyCheck {
@@ -47,7 +142,7 @@ impl client::Handler for HostKeyCheck {
 
     async fn check_server_key(
         &mut self,
-        server_public_key: &russh::keys::ssh_key::PublicKey,
+        server_public_key: &PublicKey,
     ) -> std::result::Result<bool, Self::Error> {
         let note = |text: String| {
             if let Ok(mut slot) = self.rejected.lock() {
@@ -55,26 +150,29 @@ impl client::Handler for HostKeyCheck {
             }
         };
 
-        match russh::keys::check_known_hosts(&self.host, self.port, server_public_key) {
+        let Some(path) = self.known_hosts.as_deref() else {
+            note(
+                "there is no home directory to read `.ssh/known_hosts` from, so the server's \
+                 identity cannot be checked. Point SSH_KNOWN_HOSTS at the file that records it."
+                    .to_owned(),
+            );
+            return Ok(false);
+        };
+
+        match check_known_hosts_path(&self.host, self.port, server_public_key, path) {
             Ok(true) => Ok(true),
             Ok(false) => {
-                // Refusing an unknown host is the safe answer, and the message says exactly how
-                // to make it known — which `ssh` itself would have done on a first connection.
-                note(format!(
-                    "the host key for {}:{} is not in ~/.ssh/known_hosts. Connect once with \
-                     `ssh -p {} {}` and accept the key, or add it with `ssh-keyscan`, then \
-                     publish again.",
-                    self.host, self.port, self.port, self.host
-                ));
+                note(self.unmatched(path, server_public_key));
                 Ok(false)
             }
             Err(error) => {
                 note(format!(
-                    "the host key for {}:{} does not match the one in ~/.ssh/known_hosts \
-                     ({error}). This is what a machine-in-the-middle looks like; it is also \
-                     what a rebuilt server looks like. Verify the new key out of band before \
-                     removing the old entry.",
-                    self.host, self.port
+                    "the host key for {}:{} does not match the one in {} ({error}). This is what \
+                     a machine-in-the-middle looks like; it is also what a rebuilt server looks \
+                     like. Verify the new key out of band before removing the old entry.",
+                    self.host,
+                    self.port,
+                    path.display()
                 ));
                 Ok(false)
             }
@@ -137,6 +235,7 @@ impl Transport for SftpTransport {
         let handler = HostKeyCheck {
             host: target.host.clone(),
             port: target.port,
+            known_hosts: known_hosts_path(),
             rejected: Arc::clone(&rejected),
         };
 
@@ -369,7 +468,47 @@ fn ancestors(path: &str) -> Vec<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::ancestors;
+    use std::ffi::OsString;
+    use std::path::{Path, PathBuf};
+
+    use super::{ancestors, known_hosts_at};
+
+    #[test]
+    fn the_host_keys_are_read_from_dot_ssh_on_every_platform() {
+        // russh 0.52 reads `<home>/ssh/known_hosts` on Windows, without the dot, which is not
+        // where `ssh.exe` writes. The dot is the whole bug, so it is the whole assertion.
+        let path = known_hosts_at(None, Some(PathBuf::from("/home/rodion")))
+            .expect("a home directory is enough to locate the file");
+        assert!(
+            path.ends_with(Path::new(".ssh/known_hosts")),
+            "{} is not the file ssh itself writes",
+            path.display()
+        );
+    }
+
+    #[test]
+    fn an_explicit_location_wins_over_the_home_directory() {
+        assert_eq!(
+            known_hosts_at(
+                Some(OsString::from("/etc/ssh/ssh_known_hosts")),
+                Some(PathBuf::from("/home/rodion"))
+            ),
+            Some(PathBuf::from("/etc/ssh/ssh_known_hosts"))
+        );
+    }
+
+    #[test]
+    fn an_empty_override_is_no_override() {
+        assert_eq!(
+            known_hosts_at(Some(OsString::new()), Some(PathBuf::from("/home/rodion"))),
+            Some(PathBuf::from("/home/rodion/.ssh/known_hosts"))
+        );
+    }
+
+    #[test]
+    fn without_a_home_there_is_nowhere_to_look() {
+        assert_eq!(known_hosts_at(None, None), None);
+    }
 
     #[test]
     fn an_absolute_path_yields_each_directory_outermost_first() {

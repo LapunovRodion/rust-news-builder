@@ -174,9 +174,10 @@ unchanged item performs zero writes and leaves the server byte for byte as it wa
 **Nothing is ever deleted.** A photo dropped from an item stays on the server as an orphan. The
 transport has no removal operation at all, so this cannot be violated by mistake.
 
-**The host key is checked** against `~/.ssh/known_hosts`. An unknown or changed key is refused,
-and the message says how to make it known. Connect once with `ssh` and accept the key, or use
-`ssh-keyscan`.
+**The host key is checked** against `~/.ssh/known_hosts` — `%USERPROFILE%\.ssh\known_hosts` on
+Windows, the same file `ssh.exe` writes; `SSH_KNOWN_HOSTS` overrides it. An unknown or changed
+key is refused, and the message names the file it read and says how to make the key known.
+Connect once with `ssh` and accept the key, or use `ssh-keyscan`.
 
 **A folder already holding a different item's files** gets a suffix — `den-znaniy-2` — and you
 are told.
