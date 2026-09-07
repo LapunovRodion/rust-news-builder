@@ -1,0 +1,7 @@
+# pnpm 11 reads its settings here rather than from package.json.
+#
+# esbuild is Vite's bundler and needs its postinstall to unpack a platform binary. Naming it
+# explicitly is pnpm's way of saying which dependencies may run code at install time; nothing
+# else in this tree is allowed to.
+allowBuilds:
+  esbuild: true

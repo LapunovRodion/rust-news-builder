@@ -1,0 +1,92 @@
+/*
+  The application's own chrome.
+
+  Nothing here styles the news page: that is rendered by `core::render` with inline styles only
+  (FR-023) and shown inside a sandboxed iframe, which these rules cannot reach.
+*/
+
+:root {
+  --surface: #ffffff;
+  --surface-raised: #f7f8fa;
+  --surface-sunken: #e9ecf1;
+  --line: #d8dde5;
+  --text: #14181f;
+  --muted: #6a7383;
+  --accent: #1f5fbf;
+  --accent-wash: #e8f0fd;
+  --warn: #8a5a00;
+  --warn-wash: #fdf3e0;
+  --danger: #b3261e;
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface: #171a1f;
+    --surface-raised: #1e222a;
+    --surface-sunken: #262b34;
+    --line: #333a45;
+    --text: #e7eaef;
+    --muted: #9aa4b2;
+    --accent: #6ea8ff;
+    --accent-wash: #1c2b45;
+    --warn: #e0b055;
+    --warn-wash: #352c17;
+    --danger: #ff8b82;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--surface);
+  color: var(--text);
+  font: 14px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+button {
+  font: inherit;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  padding: 0.28rem 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
