@@ -63,6 +63,9 @@ unicode-normalization = "0.1"
 
 # Paths and URLs
 url = { version = "2", features = ["serde"] }
+# The asset-protocol URLs the desktop preview points at, encoded the way
+# `convertFileSrc` encodes them in the webview.
+percent-encoding = "2"
 directories = "5"
 
 # Time, for the Clock port (contracts/core-api.md)

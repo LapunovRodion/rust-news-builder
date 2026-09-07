@@ -2800,6 +2800,7 @@ name = "newsbuilder-desktop"
 version = "0.1.0"
 dependencies = [
  "newsbuilder-core",
+ "percent-encoding",
  "serde",
  "serde_json",
  "tauri",
@@ -2807,6 +2808,7 @@ dependencies = [
  "tauri-plugin-clipboard-manager",
  "tauri-plugin-dialog",
  "tauri-plugin-fs",
+ "tokio",
  "tracing",
  "tracing-subscriber",
  "url",

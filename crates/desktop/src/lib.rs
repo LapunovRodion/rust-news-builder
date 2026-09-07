@@ -15,7 +15,7 @@ use std::sync::Mutex;
 
 use tauri::Manager;
 
-use state::{Session, SessionState, thumbnail_dir};
+use state::{Session, SessionState, preview_dir, thumbnail_dir};
 
 /// Builds and runs the application.
 ///
@@ -37,16 +37,16 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .setup(|app| {
-            // Thumbnails live under the application's own cache directory, which is the one
-            // path the capability file grants the webview read access to besides the editor's
-            // own documents.
+            // Thumbnails and the preview's photos live under the application's own cache
+            // directory, which is what `assetProtocol.scope` in `tauri.conf.json` grants the
+            // webview read access to. A path outside it is served 403 and shows as nothing.
             let cache = app
                 .path()
                 .app_cache_dir()
                 .unwrap_or_else(|_| std::env::temp_dir().join("newsbuilder"));
-            let dir = thumbnail_dir(&cache);
-            std::fs::create_dir_all(&dir).ok();
-            app.manage(Session(Mutex::new(SessionState::new(dir))));
+            std::fs::create_dir_all(thumbnail_dir(&cache)).ok();
+            std::fs::create_dir_all(preview_dir(&cache)).ok();
+            app.manage(Session(Mutex::new(SessionState::new(&cache))));
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

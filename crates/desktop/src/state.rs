@@ -26,6 +26,7 @@ use newsbuilder_core::model::item::{Block, Layout, NewsItem, ParagraphKind};
 use newsbuilder_core::model::photo::{CropRect, Photo, PhotoId, PhotoSource};
 use newsbuilder_core::photo::ThumbnailCache;
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 use crate::error::{CommandError, CommandResult};
 
@@ -187,6 +188,23 @@ pub struct SessionState {
     pub processed: ProcessCache,
     /// Where thumbnails are written for the asset protocol.
     pub thumbnail_dir: PathBuf,
+    /// Where the preview's photos are written for the asset protocol.
+    ///
+    /// The preview fragment is `core::build`'s own string and the frontend may not touch it, so
+    /// the photos have to be reachable at the URLs the build already put in it. Handing the
+    /// build an asset-protocol base and then putting the files where it says is what makes that
+    /// true — and it is the same mechanism on every platform, which a custom URI scheme would
+    /// not be (Tauri serves those as `scheme://` on Linux and `http://scheme.localhost` on
+    /// Windows).
+    pub preview_dir: PathBuf,
+    /// The asset-protocol URL of [`preview_dir`](Self::preview_dir), which every preview build
+    /// is given as its public base.
+    pub preview_base: Url,
+    /// What is already on disk under `preview_dir`, by path and content.
+    ///
+    /// The build names photos after the title, so a re-crop reuses a name; without this the
+    /// preview would keep showing the pixels the name had last time.
+    preview_written: HashMap<PathBuf, u64>,
     /// Whether there are unexported changes (edge case: closing with unsaved work).
     pub dirty: bool,
     /// A credential entered for this session only, when the OS store is unreachable (FR-041).
@@ -200,14 +218,24 @@ pub struct SessionState {
 pub struct Session(pub Mutex<SessionState>);
 
 impl SessionState {
-    /// A session holding an empty item.
-    pub fn new(thumbnail_dir: PathBuf) -> Self {
+    /// A session holding an empty item, with its caches beneath `cache`.
+    ///
+    /// # Panics
+    ///
+    /// Only if the cache directory's path cannot be made into a URL, which percent-encoding it
+    /// rules out. There is no window to report it in at that point.
+    pub fn new(cache: &Path) -> Self {
+        let preview_dir = preview_dir(cache);
         Self {
             item: NewsItem::new(),
             bytes: HashMap::new(),
             thumbnails: ThumbnailCache::new(),
             processed: ProcessCache::new(),
-            thumbnail_dir,
+            thumbnail_dir: thumbnail_dir(cache),
+            preview_base: Url::parse(&asset_url(&preview_dir))
+                .expect("a percent-encoded path makes a well-formed asset URL"),
+            preview_dir,
+            preview_written: HashMap::new(),
             dirty: false,
             session_credentials: HashMap::new(),
         }
@@ -223,8 +251,11 @@ impl SessionState {
         self.processed.clear();
         self.dirty = false;
         // Thumbnails on disk belong to the item that is gone; leaving them would let a stale
-        // image show under a re-used id.
+        // image show under a re-used id. The preview's copies go for the same reason: they are
+        // named after the old title.
         let _ = std::fs::remove_dir_all(&self.thumbnail_dir);
+        let _ = std::fs::remove_dir_all(&self.preview_dir);
+        self.preview_written.clear();
     }
 
     /// The item as the frontend sees it, rendering any thumbnail that is missing or stale.
@@ -266,16 +297,40 @@ impl SessionState {
     /// lists, still places, and still publishes. The view carries an empty URL and the UI shows
     /// a placeholder.
     fn thumbnail_url(&mut self, photo: &Photo) -> Option<String> {
-        let source = self.bytes.get(&photo.id)?.clone();
-        let bytes = self.thumbnails.get_or_render(photo, &source).ok()?;
+        // Every exit here is logged. Swallowing the failure keeps the command working, which is
+        // the intent; swallowing the *reason* leaves a photo with no picture and no way to find
+        // out why, which is not.
+        let Some(source) = self.bytes.get(&photo.id).cloned() else {
+            tracing::warn!(
+                photo = %photo.file_name,
+                "the session holds no bytes for the photo, so it gets no thumbnail"
+            );
+            return None;
+        };
+        let bytes = match self.thumbnails.get_or_render(photo, &source) {
+            Ok(bytes) => bytes,
+            Err(error) => {
+                tracing::warn!(photo = %photo.file_name, %error, "the thumbnail could not be rendered");
+                return None;
+            }
+        };
 
         // The adjustment hash is in the name, so a crop produces a new file rather than
         // overwriting one the webview may still be showing from its own cache.
         let name = format!("{}-{:016x}.jpg", photo.id.0, fingerprint(bytes));
         let path = self.thumbnail_dir.join(name);
         if !path.exists() {
-            std::fs::create_dir_all(&self.thumbnail_dir).ok()?;
-            std::fs::write(&path, bytes).ok()?;
+            if let Err(error) = std::fs::create_dir_all(&self.thumbnail_dir)
+                .and_then(|()| std::fs::write(&path, bytes))
+            {
+                tracing::warn!(
+                    photo = %photo.file_name,
+                    path = %path.display(),
+                    %error,
+                    "the thumbnail could not be written to the cache"
+                );
+                return None;
+            }
         }
         Some(path.to_string_lossy().into_owned())
     }
@@ -301,13 +356,51 @@ impl SessionState {
     /// byte-identical to what [`build`](newsbuilder_core::build::build) would have produced,
     /// which is what keeps FR-022's "the preview is the export" true through the optimisation.
     pub fn build_preview(&mut self) -> Result<BuildOutput> {
-        let context = BuildContext::preview(self.item.slug.clone());
-        build_with_cache(
+        let context = BuildContext {
+            public_base_url: Some(self.preview_base.clone()),
+            slug: self.item.slug.clone(),
+        };
+        let output = build_with_cache(
             &self.item,
             &context,
             &SessionBytes(&self.bytes),
             &mut self.processed,
-        )
+        )?;
+        self.write_preview_photos(&output);
+        Ok(output)
+    }
+
+    /// Puts the built photos where the fragment's `<img>` tags will look for them.
+    ///
+    /// Only what changed is written: [`ProcessCache`] keeps a photo's bytes identical across a
+    /// rebuild, so after the first build a keystroke touches the disk not at all, which is what
+    /// SC-008's budget leaves no room for.
+    ///
+    /// A failure here costs that photo its place in the preview and nothing else — the item
+    /// still builds, still exports and still publishes, so it is not worth failing a command
+    /// over. It is worth saying out loud.
+    fn write_preview_photos(&mut self, output: &BuildOutput) {
+        let folder = self.preview_dir.join(self.item.slug.to_string());
+        for photo in &output.processed {
+            let path = folder.join(&photo.file_name);
+            let mark = fingerprint(&photo.bytes);
+            if self.preview_written.get(&path) == Some(&mark) {
+                continue;
+            }
+            match std::fs::create_dir_all(&folder)
+                .and_then(|()| std::fs::write(&path, &photo.bytes))
+            {
+                Ok(()) => {
+                    self.preview_written.insert(path, mark);
+                }
+                Err(error) => tracing::warn!(
+                    photo = %photo.file_name,
+                    path = %path.display(),
+                    %error,
+                    "the preview copy of a photo could not be written, so it will not show"
+                ),
+            }
+        }
     }
 }
 
@@ -409,4 +502,231 @@ pub fn blocks_from_input(item: &NewsItem, input: Vec<BlockInput>) -> CommandResu
 /// The directory thumbnails are written to, beneath the application's own cache.
 pub fn thumbnail_dir(base: &Path) -> PathBuf {
     base.join("thumbnails")
+}
+
+/// The directory the preview's photos are written to, beneath the application's own cache.
+pub fn preview_dir(base: &Path) -> PathBuf {
+    base.join("preview")
+}
+
+/// The URL Tauri's asset protocol serves `path` at.
+///
+/// The same string `convertFileSrc` produces in the webview, and produced here for the same
+/// reason it exists there: the two platforms disagree about the form, and the fragment carries
+/// one fixed string. Everything but `encodeURIComponent`'s unreserved set is escaped, because
+/// the protocol handler percent-decodes the whole path back out.
+fn asset_url(path: &Path) -> String {
+    use percent_encoding::{AsciiSet, NON_ALPHANUMERIC, utf8_percent_encode};
+
+    const COMPONENT: &AsciiSet = &NON_ALPHANUMERIC
+        .remove(b'-')
+        .remove(b'_')
+        .remove(b'.')
+        .remove(b'!')
+        .remove(b'~')
+        .remove(b'*')
+        .remove(b'\'')
+        .remove(b'(')
+        .remove(b')');
+
+    let path = path.to_string_lossy();
+    let encoded = utf8_percent_encode(&path, COMPONENT);
+    if cfg!(any(windows, target_os = "android")) {
+        format!("http://asset.localhost/{encoded}")
+    } else {
+        format!("asset://localhost/{encoded}")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::{Path, PathBuf};
+    use std::sync::atomic::{AtomicU32, Ordering};
+
+    use newsbuilder_core::model::item::{Block, Layout, PhotoIntake, add_photos};
+    use newsbuilder_core::model::photo::PhotoOrigin;
+    use newsbuilder_core::model::server::Slug;
+    use newsbuilder_core::publish::slug::slugify;
+
+    use super::{SessionState, asset_url, preview_dir};
+
+    /// A directory of this test's own, removed when the test that made it passes.
+    fn scratch(name: &str) -> PathBuf {
+        static NEXT: AtomicU32 = AtomicU32::new(0);
+        let dir = std::env::temp_dir().join(format!(
+            "newsbuilder-{name}-{}-{}",
+            std::process::id(),
+            NEXT.fetch_add(1, Ordering::Relaxed)
+        ));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).expect("a scratch directory");
+        dir
+    }
+
+    fn fixture_photo() -> Vec<u8> {
+        let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../fixtures/inputs/marker-full-width/images/photo1.jpg");
+        std::fs::read(&path).expect("the parity fixtures are checked in")
+    }
+
+    /// A session holding one photograph, placed full width so the build processes it.
+    fn session_with_one_placed_photo(cache: &Path) -> SessionState {
+        let mut state = SessionState::new(cache);
+        state.item.title = "День Конституции".to_owned();
+        state.item.slug = slugify(&state.item.title);
+
+        let bytes = fixture_photo();
+        let added = add_photos(
+            &mut state.item,
+            vec![PhotoIntake::from_bytes(
+                "photo1.jpg",
+                bytes.clone(),
+                PhotoOrigin::Pasted,
+            )],
+        );
+        let id = *added.ids.first().expect("the fixture is a readable JPEG");
+        state.bytes.insert(id, bytes);
+        state.item.body.push(Block::Placement {
+            photos: vec![id],
+            layout: Layout::FullWidth,
+        });
+        state
+    }
+
+    /// The bug this guards: the preview's `<img>` tags pointed at a `newsbuilder-preview://`
+    /// scheme nothing served, so the pane was blank however well the build had gone.
+    #[test]
+    fn the_preview_points_at_photos_that_are_on_disk() {
+        let cache = scratch("preview-urls");
+        let mut state = session_with_one_placed_photo(&cache);
+
+        let output = state.build_preview().expect("the item builds");
+
+        assert!(
+            !output.processed.is_empty(),
+            "the placed photo should have been processed"
+        );
+        let base = format!("{}/{}/", asset_url(&preview_dir(&cache)), state.item.slug);
+        for photo in &output.processed {
+            let url = format!("{base}{}", photo.file_name);
+            assert!(
+                output.fragment.contains(&url),
+                "the fragment should reference {url}, but holds:\n{}",
+                output.fragment
+            );
+            let path = preview_dir(&cache)
+                .join(state.item.slug.to_string())
+                .join(&photo.file_name);
+            assert!(path.exists(), "{} should have been written", path.display());
+            assert_eq!(
+                std::fs::read(&path).expect("the file just written"),
+                photo.bytes,
+                "the file on disk should be the bytes the build produced"
+            );
+        }
+
+        std::fs::remove_dir_all(&cache).ok();
+    }
+
+    /// A crop reuses the photo's published name, so the file has to be rewritten rather than
+    /// left as whatever the name meant last time.
+    #[test]
+    fn a_changed_photo_replaces_the_file_its_name_already_had() {
+        let cache = scratch("preview-restale");
+        let mut state = session_with_one_placed_photo(&cache);
+        let first = state.build_preview().expect("the item builds");
+
+        let name = first.processed[0].file_name.clone();
+        let path = preview_dir(&cache)
+            .join(state.item.slug.to_string())
+            .join(&name);
+        std::fs::write(&path, b"stale").expect("the file is there to overwrite");
+
+        // A rebuild alone must not restore it — the bytes have not changed, so nothing is
+        // written and the cache is doing its job.
+        state.build_preview().expect("the item builds again");
+        assert_eq!(std::fs::read(&path).expect("still there"), b"stale");
+
+        // Cropping does change the bytes, and the same name now has to carry them.
+        let id = state.item.photos[0].id;
+        let photo = state.item.photo_mut(id).expect("the photo is there");
+        newsbuilder_core::photo::set_crop(
+            photo,
+            Some(newsbuilder_core::model::photo::CropRect {
+                x: 0,
+                y: 0,
+                width: 200,
+                height: 200,
+            }),
+        )
+        .expect("a crop inside the frame");
+
+        let after = state.build_preview().expect("the cropped item builds");
+        let cropped = after
+            .processed
+            .iter()
+            .find(|p| p.file_name == name)
+            .expect("the same published name");
+        assert_eq!(
+            std::fs::read(&path).expect("rewritten"),
+            cropped.bytes,
+            "the crop should have replaced the file its name already had"
+        );
+
+        std::fs::remove_dir_all(&cache).ok();
+    }
+
+    /// The bug this guards: `assetProtocol.scope` was `[]`, which is not "everything" but
+    /// "nothing" — every thumbnail request was answered 403 and no photo ever appeared.
+    #[test]
+    fn the_asset_protocol_is_scoped_to_the_directories_the_photos_are_written_to() {
+        let config: serde_json::Value = serde_json::from_str(
+            &std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("tauri.conf.json"))
+                .expect("the app's configuration"),
+        )
+        .expect("well-formed JSON");
+
+        let scope = config["app"]["security"]["assetProtocol"]["scope"]
+            .as_array()
+            .expect("assetProtocol.scope is a list");
+        let paths: Vec<&str> = scope.iter().filter_map(|entry| entry.as_str()).collect();
+
+        for required in ["$APPCACHE/thumbnails/**", "$APPCACHE/preview/**"] {
+            assert!(
+                paths.contains(&required),
+                "the webview cannot read {required}, so those images render as nothing; \
+                 scope is {paths:?}"
+            );
+        }
+    }
+
+    /// The form the protocol handler decodes back into a path.
+    #[test]
+    fn an_asset_url_percent_encodes_the_whole_path() {
+        let url = asset_url(Path::new(
+            "/home/a b/.cache/org.newsbuilder.desktop/preview",
+        ));
+        let expected = if cfg!(any(windows, target_os = "android")) {
+            "http://asset.localhost/"
+        } else {
+            "asset://localhost/"
+        };
+        assert_eq!(
+            url,
+            format!("{expected}%2Fhome%2Fa%20b%2F.cache%2Forg.newsbuilder.desktop%2Fpreview")
+        );
+    }
+
+    /// A slug is a slug; this only guards the assumption the folder layout rests on.
+    #[test]
+    fn the_preview_folder_is_the_slug_the_publish_would_use() {
+        let cache = scratch("preview-folder");
+        let mut state = session_with_one_placed_photo(&cache);
+        state.item.slug = Slug::parse("den-konstitutsii").expect("well formed");
+
+        state.build_preview().expect("the item builds");
+
+        assert!(preview_dir(&cache).join("den-konstitutsii").is_dir());
+        std::fs::remove_dir_all(&cache).ok();
+    }
 }
