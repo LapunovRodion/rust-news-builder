@@ -5,8 +5,15 @@
 //!
 //! The bias exists because editorial photographs of people put the subject's head in the upper
 //! third. Centring a crop takes equally from the top and the bottom and decapitates them.
-//! Taking a quarter from the top and three quarters from the bottom keeps the head at the cost
-//! of some floor.
+//!
+//! Research R5 proposed taking a quarter from the top and three quarters from the bottom. The
+//! SC-003 benchmark ([`crates/core/tests/portrait_benchmark.rs`]) shows that rule cutting the
+//! head off five of the twenty portraits at 1:1 and ten of them at 3:2, because a head can
+//! begin as little as a fifteenth of the way down the frame. R5 anticipated exactly this
+//! ("the bias rule failing"), so the vertical rule is now the guaranteeing one: **a vertical
+//! crop takes nothing off the top at all**. The whole excess comes off the bottom, which costs
+//! floor and cannot cost a head. Horizontal crops still split evenly — nothing about a person
+//! makes the left side more important than the right.
 
 use crate::model::photo::CropRect;
 
@@ -41,13 +48,28 @@ impl AspectRatio {
         width: 16,
         height: 9,
     };
+
+    /// The same shape turned on its side.
+    ///
+    /// A photo the editor has rotated is cropped in its *pre-rotation* frame — that is the
+    /// space [`CropRect`] is defined in and the space
+    /// [`set_crop`](crate::photo::set_crop) validates against — so a landscape target chosen
+    /// on the rotated view becomes a portrait target on the stored pixels.
+    #[must_use]
+    pub fn transposed(self) -> Self {
+        Self {
+            width: self.height,
+            height: self.width,
+        }
+    }
 }
 
 /// How much of the vertical excess comes off the top, as a fraction with this denominator.
 ///
-/// One quarter off the top, three quarters off the bottom.
-const HEADROOM_NUMERATOR: u64 = 1;
-const HEADROOM_DENOMINATOR: u64 = 4;
+/// None of it: see the module documentation. Kept as named constants rather than inlined so
+/// the rule has one place to change if face detection ever earns its dependency.
+const HEADROOM_NUMERATOR: u64 = 0;
+const HEADROOM_DENOMINATOR: u64 = 1;
 
 /// The crop that fits `dims` into `target`, or `None` when the image already has that shape.
 ///
@@ -85,7 +107,7 @@ pub fn default_frame(dims: (u32, u32), target: AspectRatio) -> Option<CropRect> 
         });
     }
 
-    // Taller than the target: take from top and bottom, biased toward the top.
+    // Taller than the target: the excess comes off the bottom, so the head survives (FR-013).
     let new_height = (w * th / tw).max(1).min(h);
     let excess = h - new_height;
     let from_top = excess * HEADROOM_NUMERATOR / HEADROOM_DENOMINATOR;
@@ -133,14 +155,14 @@ mod tests {
 
     #[test]
     fn a_portrait_cropped_to_landscape_keeps_the_top() {
-        // 600x900 into 3:2 -> 600x400. The 500px excess splits 1:3, so 125 comes off the top.
+        // 600x900 into 3:2 -> 600x400, and all 500px of excess comes off the bottom.
         let crop = default_frame((600, 900), AspectRatio::LANDSCAPE_3_2)
             .expect("a portrait does not already match 3:2");
         assert_eq!(
             crop,
             CropRect {
                 x: 0,
-                y: 125,
+                y: 0,
                 width: 600,
                 height: 400
             }
@@ -148,19 +170,38 @@ mod tests {
     }
 
     #[test]
-    fn the_vertical_bias_is_one_quarter_off_the_top() {
-        // The property that matters, stated independently of any one size: less is taken from
-        // the top than from the bottom, which is what saves the head.
+    fn a_vertical_crop_takes_nothing_off_the_top() {
+        // The property that matters, stated independently of any one size: whatever the shape
+        // and however much has to go, the top edge of the photo survives — and with it the
+        // head (FR-013, SC-003).
         for height in [700u32, 901, 1200, 1333] {
-            let crop =
-                default_frame((600, height), AspectRatio::LANDSCAPE_3_2).expect("taller than 3:2");
-            let from_top = crop.y;
-            let from_bottom = height - crop.y - crop.height;
-            assert!(
-                from_top < from_bottom,
-                "600x{height}: took {from_top} off the top and {from_bottom} off the bottom"
-            );
+            for target in [
+                AspectRatio::SQUARE,
+                AspectRatio::LANDSCAPE_3_2,
+                AspectRatio::WIDE_16_9,
+            ] {
+                let Some(crop) = default_frame((600, height), target) else {
+                    continue;
+                };
+                assert_eq!(
+                    crop.y, 0,
+                    "600x{height} into {target:?} took {} off the top",
+                    crop.y
+                );
+            }
         }
+    }
+
+    #[test]
+    fn transposing_a_ratio_turns_it_on_its_side() {
+        assert_eq!(
+            AspectRatio::LANDSCAPE_3_2.transposed(),
+            AspectRatio {
+                width: 2,
+                height: 3
+            }
+        );
+        assert_eq!(AspectRatio::SQUARE.transposed(), AspectRatio::SQUARE);
     }
 
     #[test]
