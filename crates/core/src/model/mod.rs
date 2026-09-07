@@ -8,6 +8,7 @@ pub mod appearance_config;
 pub mod item;
 pub mod photo;
 pub mod server;
+pub mod server_store;
 
 pub use appearance::{Appearance, ImageBudget, StyleSet};
 pub use item::{

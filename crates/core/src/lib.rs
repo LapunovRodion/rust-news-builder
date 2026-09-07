@@ -17,6 +17,7 @@
 )]
 #![warn(missing_debug_implementations)]
 
+pub mod adapters;
 pub mod arrange;
 pub mod build;
 pub mod error;

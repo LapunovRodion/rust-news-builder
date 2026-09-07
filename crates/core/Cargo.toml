@@ -12,6 +12,9 @@ repository.workspace = true
 # a .webp source then cannot be re-encoded to the byte budget.
 default = ["webp-lossy"]
 webp-lossy = ["dep:webp"]
+# The SFTP transport adapter. Off by default so the domain rules — and every parity test —
+# compile with no async runtime and no network stack. Both frontends turn it on.
+sftp = ["dep:russh", "dep:russh-sftp", "dep:tokio"]
 
 [dependencies]
 thiserror.workspace = true
@@ -28,6 +31,9 @@ url.workspace = true
 directories.workspace = true
 time.workspace = true
 keyring.workspace = true
+russh = { workspace = true, optional = true }
+russh-sftp = { workspace = true, optional = true }
+tokio = { workspace = true, optional = true }
 
 [dev-dependencies]
 pretty_assertions.workspace = true
