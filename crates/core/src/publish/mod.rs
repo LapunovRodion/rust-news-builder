@@ -32,6 +32,15 @@ pub enum PublishMode {
 /// The record of one publish attempt.
 #[derive(Debug, Clone)]
 pub struct Publication {
+    /// The fragment for the CMS, with the photos' real public URLs in it.
+    ///
+    /// Publishing builds this on the way past, and both frontends need it: it is the artefact
+    /// the whole exercise is for (US2). Returning it here rather than making the caller build
+    /// a second time is also what keeps the fragment consistent with the folder that was
+    /// actually used, which a suffixed slug can change under them (deviation D-8).
+    pub fragment: String,
+    /// The folder actually published into, without the base path. May be suffixed.
+    pub folder: Slug,
     /// `remote_base_path` + `/` + the folder actually used.
     pub remote_folder: String,
     /// Every published file and its public URL, in item order.
@@ -146,6 +155,8 @@ pub fn publish(
     }
 
     Ok(Publication {
+        fragment: output.fragment,
+        folder,
         remote_folder,
         uploaded,
         unchanged,
