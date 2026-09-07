@@ -49,7 +49,7 @@ Proves FR-001 – FR-005: no photo is exported by hand and no folder is chosen.
 
 ```bash
 cargo run -p newsbuilder-cli -- build \
-  --input fixtures/inputs/word-with-photos/news.docx \
+  --input fixtures/inputs/word-with-photos/input.docx \
   --output /tmp/news.html
 ```
 
@@ -75,7 +75,7 @@ Proves FR-026 – FR-034. Start with the dry run, which touches nothing:
 
 ```bash
 cargo run -p newsbuilder-cli -- publish \
-  --input fixtures/inputs/word-with-photos/news.docx \
+  --input fixtures/inputs/word-with-photos/input.docx \
   --output /tmp/news.html \
   --server test-server \
   --dry-run --json
@@ -188,7 +188,7 @@ is a constitution principle II violation, not a cosmetic bug.
 | Credential deleted from the store between publishes | Asked again, not an opaque auth failure |
 | Server unreachable (wrong port) | Names the failed step; local work intact; exit 5 |
 | Marker referencing a missing photo | Warning naming the marker; the rest still builds; exit 0 |
-| Photo over budget at the quality floor | Names that photo and the size reached; other photos still publish; exit 4 |
+| Photo over budget at the quality floor | Warning naming that photo and the size reached; other photos still publish; exit 0, or 2 under `--strict`. Exit 4 is the fatal form, which the build path does not take (FR-034) |
 | CLI run on an item needing an arrangement decision | Refused, pointing at the application; exit 3 |
 | Connection dropped mid-upload | Names the file in flight; re-publishing completes the item |
 

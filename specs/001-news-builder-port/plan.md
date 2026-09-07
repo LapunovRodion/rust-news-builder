@@ -142,6 +142,55 @@ are new, and each was forced by evidence rather than chosen.
     - `UnknownAppearanceKey { key }` — required by contracts/appearance-config.md's
       "warn, ignore, continue" rule, which had no variant to carry it.
 
+14. **`ArrangeReport` carries a third field, `preserved_manual`.** `contracts/core-api.md` gives
+    it `{ placed, replaced_manual }`, which cannot express FR-020. That requirement is a
+    two-step conversation: arrange without replacing anything, tell the editor how much of their
+    own work stands in the way, ask, and only then arrange again with permission. The count has
+    to come from the run that changed *nothing* — `replaced_manual` is necessarily 0 there, so
+    with only those two fields the interface would have to ask the question after already
+    answering it. `crates/core/tests/arrange_manual_guard.rs` pins both halves.
+
+15. **The host key is verified.** The SFTP adapter checks the server's key against
+    `~/.ssh/known_hosts` and refuses an unknown or changed one, naming the fix. The reference
+    accepts any key. Silently trusting whatever answers on port 22 is what makes a
+    machine-in-the-middle work, and the credential is handed over immediately after the
+    handshake — so this is the one place where "match the reference" would have meant shipping
+    a hole. The first publish to a new server therefore needs the host accepted once, exactly
+    as `ssh` itself requires.
+16. **One transport implementation, in `core::adapters::transport`.** T060 named
+    `crates/cli/src/adapters/transport.rs` *and*
+    `crates/desktop/src/adapters/transport.rs` "sharing one implementation module"; two files
+    that must not diverge is precisely what FR-039 cannot afford, and the only ways to share
+    one across crate boundaries are a `#[path]` attribute pointing out of the crate or a fourth
+    crate. It lives in `core` instead, behind the non-default `sftp` feature — so the domain
+    rules and every parity test still compile with no `tokio` and no network stack, and both
+    frontends get the same code by enabling one feature. `core::adapters::files` (a `FileStore`
+    over `std::fs`) is there for the same reason; no task named it, and all three callers
+    needed one.
+17. **`Publication` carries the fragment and the folder.** `contracts/core-api.md` gave it
+    neither, but publishing *is* how an editor gets the fragment with real URLs in it (US2),
+    and the folder can be suffixed under the caller's feet (D-8). Without both, every caller
+    would have to build a second time and guess which folder was used.
+18. **`publish` does not accept `--public-base-url`.** contracts/cli.md says it takes every
+    `build` flag; that one would let an operator publish files to one place and print URLs
+    pointing at another. The server configuration supplies it. `--output` is optional there
+    too: a publish that is not told where to write the fragment prints it instead.
+
+19. **The frontend is plain Vite + Svelte, so there is no `routes/`.** The tasks name
+    `ui/src/routes/+page.svelte`, which is a SvelteKit path; plan.md specifies "Vite + Svelte 5
+    + TypeScript", and SvelteKit would add a router and an adapter to an application with one
+    screen. The root is `ui/src/App.svelte`. T103's unsaved-changes guard lives there too rather
+    than in `desktop/src/main.rs`, because `onCloseRequested` is a webview-side event and the
+    question it asks is a dialog.
+20. **Placement cards edit the document, not one command each.** T107, T110 and T111 say the
+    card should call `set_layout`, `add_to_placement` and `move_placement`. Those commands
+    exist, are exposed, and enforce their invariants — but the card is a TipTap node, and the
+    natural act of dragging or retyping around it already changes the document. Having the card
+    *also* issue a command per click means two writers for one edit and a caret that jumps
+    whenever the answer comes back. Instead every structural edit lands in the document and the
+    debounced `set_body` pushes the whole body, where `blocks_from_input` enforces INV-1 and
+    INV-4 exactly as the individual commands would. One write path, one owner of the rules.
+
 ### Dependency added during implementation
 
 `unicode-normalization` — the reference runs NFKD before dropping non-ASCII, which is what turns
