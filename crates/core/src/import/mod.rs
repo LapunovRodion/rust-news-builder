@@ -14,7 +14,9 @@ use std::sync::Arc;
 
 use crate::error::{Result, Warning};
 use crate::markers::{self, ParsedBlock};
-use crate::model::item::{Block, EmbeddedMedia, Layout, NewsItem, SourceDocument, SourceFormat};
+use crate::model::item::{
+    Block, EmbeddedMedia, Layout, NewsItem, SourceDocument, SourceFormat, unique_file_name,
+};
 use crate::model::photo::{Adjustments, NaturalKey, Photo, PhotoId, PhotoOrigin, PhotoSource};
 use crate::photo;
 use crate::publish::slug::slugify;
@@ -159,24 +161,6 @@ fn rename_to_sniffed_extension(base: &str, format: image::ImageFormat) -> String
     let stem = base.rsplit_once('.').map_or(base, |(stem, _)| stem);
     let extension = format.extensions_str().first().copied().unwrap_or("bin");
     format!("{stem}.{extension}")
-}
-
-/// Appends a numeric suffix until the name is free (INV-5).
-fn unique_file_name(item: &NewsItem, wanted: String) -> String {
-    if !item.photos.iter().any(|p| p.file_name == wanted) {
-        return wanted;
-    }
-    let (stem, extension) = match wanted.rsplit_once('.') {
-        Some((stem, extension)) => (stem.to_owned(), format!(".{extension}")),
-        None => (wanted.clone(), String::new()),
-    };
-    for n in 2u32.. {
-        let candidate = format!("{stem}-{n}{extension}");
-        if !item.photos.iter().any(|p| p.file_name == candidate) {
-            return candidate;
-        }
-    }
-    wanted
 }
 
 /// Splits a normalised body into blocks, turning every marker into a placement.

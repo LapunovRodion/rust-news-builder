@@ -24,6 +24,30 @@ use newsbuilder_core::model::server::Slug;
 pub const PUBLIC_BASE_URL: &str = "https://example.org/news/2026/03/";
 pub const REMOTE_BASE_PATH: &str = "/var/www/html/news";
 
+/// A real, decodable JPEG of the given size.
+///
+/// Generated rather than loaded so a test can ask for exactly the shape it needs. The noise is
+/// seeded, so the bytes are the same on every run and every machine (constitution IV).
+pub fn jpeg_bytes(width: u32, height: u32, seed: u32) -> Vec<u8> {
+    use image::{ImageEncoder, Rgb, RgbImage};
+    let mut image = RgbImage::new(width.max(1), height.max(1));
+    let mut state = seed.wrapping_mul(0x9E37_79B9).wrapping_add(1);
+    for pixel in image.pixels_mut() {
+        state = state.wrapping_mul(1_103_515_245).wrapping_add(12_345);
+        *pixel = Rgb([(state >> 16) as u8, (state >> 8) as u8, state as u8]);
+    }
+    let mut bytes = Vec::new();
+    image::codecs::jpeg::JpegEncoder::new_with_quality(&mut bytes, 90)
+        .write_image(
+            image.as_raw(),
+            image.width(),
+            image.height(),
+            image::ExtendedColorType::Rgb8,
+        )
+        .expect("encoding a generated image cannot fail");
+    bytes
+}
+
 /// The repository root, found from this file rather than from the working directory.
 pub fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))

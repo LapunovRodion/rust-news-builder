@@ -51,7 +51,7 @@ pub enum PhotoSource {
 }
 
 /// EXIF orientation (FR-016), as the eight values the tag defines.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum Orientation {
     /// No transform.
     #[default]
@@ -99,7 +99,7 @@ impl Orientation {
 }
 
 /// A crop rectangle in oriented-image pixel space.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct CropRect {
     /// Left edge.
     pub x: u32,
@@ -124,7 +124,9 @@ impl CropRect {
 }
 
 /// Quarter-turns applied by the editor, normalised to 0..=3 (FR-017).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Default, serde::Serialize, serde::Deserialize,
+)]
 pub struct Quarters(u8);
 
 impl Quarters {
@@ -157,7 +159,9 @@ impl Quarters {
 }
 
 /// What the editor changed about a photo. Reversible by construction (FR-014).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Default, serde::Serialize, serde::Deserialize,
+)]
 pub struct Adjustments {
     /// The crop, in oriented-image pixel space. `None` is the full frame.
     pub crop: Option<CropRect>,

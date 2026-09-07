@@ -40,11 +40,15 @@ pub struct DocxContent {
 pub fn read(bytes: &[u8]) -> Result<DocxContent> {
     let mut archive =
         zip::ZipArchive::new(Cursor::new(bytes)).map_err(|e| Error::DocumentUnreadable {
+            // The reader has the bytes and not the path; the frontend attaches the file name
+            // with `Error::in_file` on the way out (SC-007).
+            name: None,
             detail: format!("the file is not a readable .docx package: {e}"),
         })?;
 
     let document_xml =
         read_part(&mut archive, "word/document.xml")?.ok_or_else(|| Error::DocumentUnreadable {
+            name: None,
             detail: "the package has no word/document.xml, so it is not a Word document".to_owned(),
         })?;
 
@@ -100,6 +104,7 @@ fn read_part<R: Read + std::io::Seek>(
         Err(zip::result::ZipError::FileNotFound) => return Ok(None),
         Err(e) => {
             return Err(Error::DocumentUnreadable {
+                name: None,
                 detail: format!("could not open `{name}` inside the package: {e}"),
             });
         }
@@ -107,6 +112,7 @@ fn read_part<R: Read + std::io::Seek>(
     let mut payload = Vec::with_capacity(file.size() as usize);
     file.read_to_end(&mut payload)
         .map_err(|e| Error::DocumentUnreadable {
+            name: None,
             detail: format!("could not read `{name}` inside the package: {e}"),
         })?;
     Ok(Some(payload))
@@ -346,6 +352,7 @@ fn note_once(warnings: &mut Vec<Warning>, what: &str) {
 
 fn xml_error(e: impl std::fmt::Display) -> Error {
     Error::DocumentUnreadable {
+        name: None,
         detail: format!("the document's XML is malformed: {e}"),
     }
 }

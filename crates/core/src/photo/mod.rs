@@ -4,8 +4,11 @@
 //! [`Adjustments`](crate::model::photo::Adjustments) and applied on the way to the output, so
 //! reverting is assignment rather than restoration.
 //!
-//! Order matters and is fixed by [contracts/html-output.md]: EXIF orientation, then the
-//! editor's rotation, then the crop, then scaling, then the quality search.
+//! Order matters: EXIF orientation, then the crop, then the editor's rotation, then scaling,
+//! then the quality search. The crop sits before the rotation because a [`CropRect`] is defined
+//! in oriented, pre-rotation pixel space — which is also the space
+//! [`NewsItem::crops_are_within_bounds`](crate::model::item::NewsItem::crops_are_within_bounds)
+//! checks INV-6 in.
 
 pub mod encode;
 pub mod frame;
@@ -55,6 +58,40 @@ pub fn extension_of(file_name: &str) -> String {
         Some(index) => file_name[index..].to_ascii_lowercase(),
         None => String::new(),
     }
+}
+
+/// Decides whether a file may enter an item, and names the file and the reason when it may not.
+///
+/// Two gates, in this order and for different reasons (FR-011):
+///
+/// 1. **The name.** A `.pdf` never reaches the decoder, so dropping a folder of mixed files
+///    costs nothing and the refusal can say `notes.pdf` rather than "an unsupported file".
+/// 2. **The bytes.** A file wearing a `.jpg` name that is not one is caught here. Names are a
+///    hint; the container decides.
+///
+/// The refusal is a [`Warning`] rather than an [`Error`] because one bad file in a drop of
+/// thirty must not cost the other twenty-nine (FR-034).
+pub fn accept(file_name: &str, bytes: &[u8]) -> std::result::Result<Probe, Warning> {
+    if !extension_is_supported(file_name) {
+        let extension = extension_of(file_name);
+        let what = if extension.is_empty() {
+            "it has no file extension".to_owned()
+        } else {
+            format!("`{extension}` is not an image format this tool handles")
+        };
+        return Err(Warning::PhotoSkipped {
+            name: file_name.to_owned(),
+            reason: format!(
+                "{what}; the formats accepted are {}",
+                SUPPORTED_EXTENSIONS.join(", ")
+            ),
+        });
+    }
+
+    probe(bytes, file_name).map_err(|error| Warning::PhotoSkipped {
+        name: file_name.to_owned(),
+        reason: error.to_string(),
+    })
 }
 
 /// Reads a photo's shape without keeping the decoded pixels.
@@ -151,10 +188,10 @@ pub fn process(
     })
 }
 
-/// EXIF orientation, then the editor's quarter-turns, then the crop.
+/// EXIF orientation, then the crop, then the editor's quarter-turns.
 ///
-/// The crop is expressed in oriented-image space, so it is applied after the rotation that
-/// defines that space — reversing these two would crop the wrong region of a rotated photo.
+/// The crop is expressed in oriented, pre-rotation space, so it is applied before the rotation —
+/// reversing these two would crop a different region than the editor chose.
 #[must_use]
 pub fn apply_adjustments(
     image: DynamicImage,
@@ -243,14 +280,20 @@ pub fn revert(photo: &mut Photo) {
 }
 
 /// The crop that would frame this photo for a target shape, without applying it (FR-013).
+///
+/// `target` is the shape the editor picked on the view they can see, which is the photo after
+/// its quarter-turns. The crop itself lives in the pre-rotation frame — that is what
+/// [`CropRect`] means and what [`set_crop`] validates against — so a rotation that swaps the
+/// axes transposes the *target*, not the dimensions. Swapping the dimensions instead produces a
+/// rectangle shaped for a frame it will never be applied in, and `set_crop` rightly refuses it.
 #[must_use]
 pub fn suggest_crop(photo: &Photo, target: AspectRatio) -> Option<CropRect> {
-    let dims = if photo.adjust.rotate.swaps_axes() {
-        (photo.dimensions.1, photo.dimensions.0)
+    let target = if photo.adjust.rotate.swaps_axes() {
+        target.transposed()
     } else {
-        photo.dimensions
+        target
     };
-    default_frame(dims, target)
+    default_frame(photo.dimensions, target)
 }
 
 /// Thumbnails, keyed so a photo is only ever re-rendered when something about it changed.
