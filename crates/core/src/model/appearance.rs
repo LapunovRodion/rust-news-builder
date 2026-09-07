@@ -123,7 +123,7 @@ impl StyleSet {
 }
 
 /// Photo-budget settings.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ImageBudget {
     /// The longest edge a published photo may have. Photos are never scaled up.
     pub max_width: u32,
