@@ -1,0 +1,32 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Only what the editing workflow needs (T104). No HTTP client and no shell: the one route to the network is the SFTP transport in the Rust core, behind the Transport port, and the webview cannot reach it except through a command.",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-set-title",
+    "core:event:default",
+    {
+      "identifier": "core:webview:allow-internal-toggle-devtools",
+      "allow": []
+    },
+    "dialog:allow-open",
+    "dialog:allow-save",
+    "dialog:allow-message",
+    "dialog:allow-confirm",
+    "clipboard-manager:allow-read-image",
+    "clipboard-manager:allow-write-text",
+    "fs:allow-read-file",
+    {
+      "identifier": "fs:scope",
+      "allow": [
+        { "path": "$PICTURE/**" },
+        { "path": "$DOCUMENT/**" },
+        { "path": "$DOWNLOAD/**" },
+        { "path": "$DESKTOP/**" },
+        { "path": "$APPCACHE/thumbnails/**" }
+      ]
+    }
+  ]
+}

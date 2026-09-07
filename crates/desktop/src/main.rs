@@ -1,4 +1,6 @@
+// A console window behind a desktop application on Windows is noise, not a feature.
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 fn main() {
-    // Replaced in T041 by the Tauri builder.
-    eprintln!("newsbuilder-desktop: not yet implemented");
+    newsbuilder_desktop_lib::run();
 }

@@ -8,8 +8,25 @@ license.workspace = true
 repository.workspace = true
 publish = false
 
+[lib]
+# Tauri's mobile targets expect the application to be reachable as a library. Keeping the
+# binary a thin shell over `lib.rs` also means the commands can be unit-tested.
+name = "newsbuilder_desktop_lib"
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[[bin]]
+name = "newsbuilder-desktop"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build.workspace = true
+
 [dependencies]
-newsbuilder-core.workspace = true
+newsbuilder-core = { workspace = true, features = ["sftp"] }
+tauri.workspace = true
+tauri-plugin-dialog.workspace = true
+tauri-plugin-fs.workspace = true
+tauri-plugin-clipboard-manager.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tracing.workspace = true
