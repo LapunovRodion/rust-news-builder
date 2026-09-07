@@ -12,7 +12,7 @@ name = "newsbuilder"
 path = "src/main.rs"
 
 [dependencies]
-newsbuilder-core.workspace = true
+newsbuilder-core = { workspace = true, features = ["sftp"] }
 clap.workspace = true
 rpassword.workspace = true
 serde.workspace = true
@@ -20,7 +20,5 @@ serde_json.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
 url.workspace = true
-russh.workspace = true
-russh-sftp.workspace = true
 tokio.workspace = true
 time.workspace = true
