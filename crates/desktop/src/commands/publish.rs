@@ -186,8 +186,9 @@ pub fn clear_session_credential(name: String, session: State<'_, Session>) -> Co
 
 /// Publishes the open item (FR-026, FR-031).
 ///
-/// `async` so Tauri runs it on its worker pool rather than on the thread that serves the
-/// window: the whole call is network-bound, and the interface has to stay responsive through it.
+/// `async` so Tauri does not run it on the thread that serves the window, and the work itself
+/// on the blocking pool: the whole call is network-bound and synchronous, and the interface has
+/// to stay responsive through it.
 #[tauri::command]
 pub async fn publish(
     server: String,
@@ -224,26 +225,41 @@ pub async fn publish(
         },
     );
 
-    let mut transport = SftpTransport::new()?;
-    let secrets = ResolvedSecrets {
-        keyring: KeyringStore::new(),
-        session: session_secret,
-        reference: config.credential.clone(),
-    };
     let mode = if dry_run {
         PublishMode::DryRun
     } else {
         PublishMode::Live
     };
 
-    let publication = core_publish(
-        &item,
-        &config,
-        &mut transport,
-        &secrets,
-        mode,
-        &SessionBytes(&bytes),
-    )?;
+    // On the blocking pool, and not inline, for a reason the type signatures do not show:
+    // `SftpTransport` owns a Tokio runtime and blocks on it, and Tokio refuses to enter a
+    // runtime from a thread that is already driving one — which is precisely what the thread
+    // polling an `async` command is. Calling it here panicked with "Cannot start a runtime from
+    // within a runtime" before the connection was ever attempted. The blocking pool is also
+    // where a call that holds its thread for the length of an upload belongs.
+    let publication = tauri::async_runtime::spawn_blocking(move || {
+        let mut transport = SftpTransport::new()?;
+        let secrets = ResolvedSecrets {
+            keyring: KeyringStore::new(),
+            session: session_secret,
+            reference: config.credential.clone(),
+        };
+        core_publish(
+            &item,
+            &config,
+            &mut transport,
+            &secrets,
+            mode,
+            &SessionBytes(&bytes),
+        )
+    })
+    .await
+    .map_err(|error| {
+        CommandError::new(
+            "publish_interrupted",
+            format!("the publish did not run to completion: {error}"),
+        )
+    })??;
 
     for (index, (name, _)) in publication.uploaded.iter().enumerate() {
         let _ = app.emit(
@@ -376,4 +392,58 @@ fn config_from(view: &ServerView) -> CommandResult<ServerConfig> {
         public_base_url,
         credential,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use newsbuilder_core::adapters::transport::SftpTransport;
+    use newsbuilder_core::model::server::{CredentialRef, ServerConfig};
+    use newsbuilder_core::ports::Transport;
+    use newsbuilder_core::secret::Secret;
+    use url::Url;
+
+    /// A target nothing answers on, so the call fails at the first connection and never reaches
+    /// the network proper. What is under test is the thread it fails *on*.
+    fn nowhere() -> ServerConfig {
+        ServerConfig {
+            name: "nowhere".to_owned(),
+            host: "127.0.0.1".to_owned(),
+            port: 1,
+            user: "nobody".to_owned(),
+            remote_base_path: "/var/www/news".to_owned(),
+            public_base_url: Url::parse("https://example.org/news/").expect("well formed"),
+            credential: CredentialRef::Password {
+                server: "nowhere".to_owned(),
+            },
+        }
+    }
+
+    /// The bug this guards: [`publish`] is an `async` command, so Tauri polls it on a runtime
+    /// worker, and `SftpTransport` blocks on a runtime of its own. Tokio refuses to enter a
+    /// runtime from a thread already driving one, so the call panicked with "Cannot start a
+    /// runtime from within a runtime" before it ever opened a socket. Running it on the
+    /// blocking pool is what makes it legal.
+    #[tokio::test(flavor = "multi_thread")]
+    async fn connecting_from_inside_the_async_runtime_fails_rather_than_panicking() {
+        let outcome = tauri::async_runtime::spawn_blocking(|| {
+            let mut transport = SftpTransport::new().expect("a transport starts");
+            transport.connect(&nowhere(), &Secret::new("unused".to_owned()))
+        })
+        .await
+        .expect("the blocking task ran to completion, rather than panicking");
+
+        assert!(
+            outcome.is_err(),
+            "nothing listens on port 1, so this should be a refusal, not a connection"
+        );
+    }
+
+    /// The other half of the pair, and what gives it its meaning: without the blocking pool
+    /// this is what the command did, and this is what came out of it.
+    #[tokio::test(flavor = "multi_thread")]
+    #[should_panic(expected = "Cannot start a runtime from within a runtime")]
+    async fn the_direct_call_is_what_used_to_panic() {
+        let mut transport = SftpTransport::new().expect("a transport starts");
+        let _ = transport.connect(&nowhere(), &Secret::new("unused".to_owned()));
+    }
 }
