@@ -7,11 +7,16 @@ default:
     @just --list
 
 # The four merge gates, in the order that fails fastest.
-gates: fmt-check clippy test parity ui-check
+gates: fmt-check clippy test parity ui-check bridge-lint
 
 # The frontend's own gates: types and the body round trip (T108).
 ui-check:
     cd crates/desktop/ui && pnpm install --frozen-lockfile && pnpm check && pnpm test
+
+# The Joomla bridge must at least parse. Skipped, loudly, where no `php` is installed.
+bridge-lint:
+    @if command -v php >/dev/null; then php -l crates/core/src/adapters/joomla/bridge.php; \
+    else echo "bridge-lint: php is not on PATH, skipped"; fi
 
 # Build the frontend bundle the Tauri build embeds.
 ui-build:
@@ -67,3 +72,18 @@ e2e:
 bench-preview:
     cargo test -p newsbuilder-core --release --test preview_latency -- \
         --ignored --nocapture --test-threads=1
+
+# The opt-in site-insertion suite: Joomla 5, MariaDB and sshd in containers (002 research R9).
+e2e-joomla:
+    docker compose -f tools/e2e-joomla/compose.yml up -d --build --wait
+    NEWSBUILDER_E2E_JOOMLA=1 cargo test -p newsbuilder-core --features sftp --test e2e_joomla -- \
+        --ignored --nocapture --test-threads=1; \
+        status=$?; docker compose -f tools/e2e-joomla/compose.yml down -v; exit $status
+
+# Portable release builds for Linux and Windows, in a clean Ubuntu container (tools/release/).
+# Artefacts land in dist/linux and dist/windows.
+release:
+    docker build -t newsbuilder-release -f tools/release/Containerfile tools/release
+    mkdir -p dist
+    docker run --rm --network host -v "$PWD":/repo:ro -v "$PWD/dist":/out -v newsbuilder-release-cargo:/opt/cargo/registry \
+        newsbuilder-release sh /repo/tools/release/build.sh

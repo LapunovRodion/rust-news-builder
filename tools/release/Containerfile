@@ -1,0 +1,26 @@
+# Release builds for Linux and Windows, from one clean Ubuntu 22.04.
+#
+# Why a container: a binary built in the Nix dev shell links against /nix/store and runs on no
+# other machine. Ubuntu 22.04's glibc is old enough that the result runs on current distros.
+# Windows comes from the same image through Tauri's cross-compilation route (cargo-xwin + NSIS).
+FROM docker.io/library/ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      build-essential pkg-config curl ca-certificates file git xz-utils \
+      libwebkit2gtk-4.1-dev libgtk-3-dev libsoup-3.0-dev librsvg2-dev libssl-dev libxdo-dev \
+      libayatana-appindicator3-dev \
+      nsis lld llvm clang \
+ && rm -rf /var/lib/apt/lists/*
+
+ENV RUSTUP_HOME=/opt/rustup CARGO_HOME=/opt/cargo PATH=/opt/cargo/bin:/opt/node/bin:$PATH
+RUN curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable \
+ && rustup target add x86_64-pc-windows-msvc
+
+RUN mkdir -p /opt/node \
+ && curl -sSfL https://nodejs.org/dist/v22.20.0/node-v22.20.0-linux-x64.tar.xz \
+    | tar -xJ -C /opt/node --strip-components=1 \
+ && npm install -g pnpm@11
+
+RUN cargo install tauri-cli --version '^2' --locked \
+ && cargo install cargo-xwin --locked

@@ -20,7 +20,10 @@ use std::path::{Path, PathBuf};
 
 use newsbuilder_core::error::{Error, Result};
 use newsbuilder_core::model::server::{CredentialRef, ServerConfig};
-use newsbuilder_core::ports::{Clock, FileStore, RemoteEntry, SecretStore, Transport};
+use newsbuilder_core::model::site::{
+    ArticleProbe, ArticleSettings, ArticleWrite, FindResult, SavedArticle, SiteCatalog, SiteTarget,
+};
+use newsbuilder_core::ports::{Clock, FileStore, RemoteEntry, SecretStore, Site, Transport};
 use newsbuilder_core::secret::Secret;
 use time::OffsetDateTime;
 
@@ -44,6 +47,7 @@ pub fn server_config(name: &str) -> ServerConfig {
         credential: CredentialRef::Password {
             server: name.to_owned(),
         },
+        site: None,
     }
 }
 
@@ -426,5 +430,162 @@ impl Default for FixedClock {
 impl Clock for FixedClock {
     fn now(&self) -> OffsetDateTime {
         self.0
+    }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Site (002)
+// ---------------------------------------------------------------------------------------------
+
+/// A site target the article tests publish into: category 8 by default, nothing else set.
+#[must_use]
+pub fn site_target() -> SiteTarget {
+    SiteTarget {
+        joomla_root: "/var/www/html".to_owned(),
+        site_url: url::Url::parse("https://example.org/").expect("a valid constant url"),
+        php: "php".to_owned(),
+        defaults: ArticleSettings {
+            category: Some(8),
+            ..ArticleSettings::default()
+        },
+    }
+}
+
+/// [`server_config`] with [`site_target`] attached.
+#[must_use]
+pub fn site_server_config(name: &str) -> ServerConfig {
+    ServerConfig {
+        site: Some(site_target()),
+        ..server_config(name)
+    }
+}
+
+/// One recorded site call.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SiteOp {
+    Describe,
+    Find(ArticleProbe),
+    Save(ArticleWrite),
+}
+
+/// A site that answers from a script and remembers every question, in order.
+#[derive(Debug, Default)]
+pub struct ScriptedSite {
+    log: Vec<SiteOp>,
+    /// What `describe` answers.
+    pub catalog: SiteCatalog,
+    /// What `find` answers.
+    pub found: FindResult,
+    /// Makes `find` fail with a bridge error naming this step.
+    pub find_fails: Option<String>,
+    /// Makes `save` fail with a bridge error naming this step.
+    pub save_fails: Option<String>,
+}
+
+impl ScriptedSite {
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    #[must_use]
+    pub fn log(&self) -> &[SiteOp] {
+        &self.log
+    }
+
+    /// Every write asked for, in order.
+    #[must_use]
+    pub fn saves(&self) -> Vec<&ArticleWrite> {
+        self.log
+            .iter()
+            .filter_map(|op| match op {
+                SiteOp::Save(write) => Some(write),
+                _ => None,
+            })
+            .collect()
+    }
+
+    /// The address the fake gives an article.
+    #[must_use]
+    pub fn url_of(id: u32) -> String {
+        format!("https://example.org/index.php?option=com_content&view=article&id={id}&catid=8")
+    }
+}
+
+/// The id [`ScriptedSite`] gives a newly created article.
+pub const NEW_ARTICLE_ID: u32 = 1000;
+
+impl Site for ScriptedSite {
+    fn describe(&mut self, _target: &SiteTarget) -> Result<SiteCatalog> {
+        self.log.push(SiteOp::Describe);
+        Ok(self.catalog.clone())
+    }
+
+    fn find(&mut self, _target: &SiteTarget, probe: &ArticleProbe) -> Result<FindResult> {
+        self.log.push(SiteOp::Find(probe.clone()));
+        match &self.find_fails {
+            Some(step) => Err(Error::SiteBridge {
+                step: step.clone(),
+                detail: "the fake site was told this fails".to_owned(),
+            }),
+            None => Ok(self.found.clone()),
+        }
+    }
+
+    fn save(&mut self, _target: &SiteTarget, write: &ArticleWrite) -> Result<SavedArticle> {
+        self.log.push(SiteOp::Save(write.clone()));
+        if let Some(step) = &self.save_fails {
+            return Err(Error::SiteBridge {
+                step: step.clone(),
+                detail: "the fake site was told this fails".to_owned(),
+            });
+        }
+        let id = write.id.unwrap_or(NEW_ARTICLE_ID);
+        Ok(SavedArticle {
+            id,
+            created: write.id.is_none(),
+            url: Self::url_of(id),
+        })
+    }
+}
+
+/// One SSH session carrying both the photos and the article, as `SftpTransport` does.
+#[derive(Debug, Default)]
+pub struct RemoteFake {
+    pub transport: RecordingTransport,
+    pub site: ScriptedSite,
+}
+
+impl RemoteFake {
+    #[must_use]
+    pub fn new(transport: RecordingTransport, site: ScriptedSite) -> Self {
+        Self { transport, site }
+    }
+}
+
+impl Transport for RemoteFake {
+    fn connect(&mut self, target: &ServerConfig, cred: &Secret) -> Result<()> {
+        self.transport.connect(target, cred)
+    }
+    fn list(&mut self, remote_dir: &str) -> Result<Vec<RemoteEntry>> {
+        self.transport.list(remote_dir)
+    }
+    fn ensure_dir(&mut self, remote_dir: &str) -> Result<()> {
+        self.transport.ensure_dir(remote_dir)
+    }
+    fn put(&mut self, remote_path: &str, bytes: &[u8]) -> Result<()> {
+        self.transport.put(remote_path, bytes)
+    }
+}
+
+impl Site for RemoteFake {
+    fn describe(&mut self, target: &SiteTarget) -> Result<SiteCatalog> {
+        self.site.describe(target)
+    }
+    fn find(&mut self, target: &SiteTarget, probe: &ArticleProbe) -> Result<FindResult> {
+        self.site.find(target, probe)
+    }
+    fn save(&mut self, target: &SiteTarget, write: &ArticleWrite) -> Result<SavedArticle> {
+        self.site.save(target, write)
     }
 }

@@ -133,3 +133,52 @@ fn the_sentinel_would_have_been_found_if_it_had_leaked() {
     let exposed = Secret::new(SENTINEL).expose().to_owned();
     assert!(exposed.contains(SENTINEL));
 }
+
+// ---------------------------------------------------------------------------------------------
+// 002: site insertion adds no secret, and leaks none (SC-006, T041)
+// ---------------------------------------------------------------------------------------------
+
+#[test]
+fn a_publish_into_a_site_leaks_the_password_nowhere() {
+    use newsbuilder_core::build::EmbeddedBytes;
+    use newsbuilder_core::model::site::ArticleConfirmation;
+    use newsbuilder_core::publish::{PublishMode, publish_to_site};
+    use support::fakes::{RemoteFake, ScriptedSite, site_server_config};
+
+    let item = support::item("markers").expect("imports");
+    let server = site_server_config("editorial");
+    let secrets = FakeSecretStore::new().with_secret(&server.credential, SENTINEL);
+
+    // Every outcome shape: created, and failed with a detail carrying server output.
+    let mut created = RemoteFake::default();
+    let mut failing = RemoteFake::new(RecordingTransport::new(), {
+        let mut site = ScriptedSite::new();
+        site.save_fails = Some("saving the article".to_owned());
+        site
+    });
+
+    for remote in [&mut created, &mut failing] {
+        let publication = publish_to_site(
+            &item,
+            &server,
+            remote,
+            &secrets,
+            PublishMode::Live,
+            ArticleConfirmation::None,
+            &EmbeddedBytes,
+        )
+        .expect("publishes");
+        assert_clean("the publication", &format!("{publication:?}"));
+        assert_clean("the site calls", &format!("{:?}", remote.site.log()));
+        assert_clean(
+            "the transport calls",
+            &format!("{:?}", remote.transport.log()),
+        );
+    }
+
+    // The configuration file, site settings included.
+    assert_clean(
+        "the serialised configuration",
+        &serde_json::to_string(&server).expect("serialises"),
+    );
+}

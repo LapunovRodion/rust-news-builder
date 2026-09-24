@@ -208,6 +208,7 @@ mod tests {
             credential: CredentialRef::Password {
                 server: name.to_owned(),
             },
+            site: None,
         }
     }
 

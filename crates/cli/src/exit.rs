@@ -53,11 +53,18 @@ impl Exit {
             Error::NoCredential { .. }
             | Error::SecretStoreUnavailable { .. }
             | Error::RemotePathUnusable { .. }
-            | Error::InvalidPlacement { .. } => Self::Refusal,
+            | Error::InvalidPlacement { .. }
+            | Error::SiteIncomplete { .. }
+            | Error::CategoryMissing { .. }
+            | Error::AliasTaken { .. }
+            | Error::ArticleAmbiguous { .. }
+            | Error::InvalidArticleSetting { .. } => Self::Refusal,
 
             Error::SizeBudgetUnreachable { .. } => Self::Processing,
 
-            Error::Transport { .. } => Self::Transport,
+            Error::Transport { .. } | Error::SiteUnsupported { .. } | Error::SiteBridge { .. } => {
+                Self::Transport
+            }
 
             // `Error` is `#[non_exhaustive]`. A variant added later is an input problem until
             // someone classifies it, which is the answer that makes a script retry rather than
@@ -83,6 +90,13 @@ pub fn error_kind(error: &Error) -> &'static str {
         Error::InvalidAppearance { .. } => "invalid_appearance",
         Error::PhotoNameUnusable { .. } => "photo_name_unusable",
         Error::InvalidPlacement { .. } => "invalid_placement",
+        Error::SiteIncomplete { .. } => "site_incomplete",
+        Error::SiteUnsupported { .. } => "site_unsupported",
+        Error::CategoryMissing { .. } => "category_missing",
+        Error::AliasTaken { .. } => "alias_taken",
+        Error::ArticleAmbiguous { .. } => "article_ambiguous",
+        Error::InvalidArticleSetting { .. } => "invalid_article_setting",
+        Error::SiteBridge { .. } => "site_bridge",
         _ => "error",
     }
 }

@@ -117,6 +117,10 @@ pub struct ServerConfig {
     pub public_base_url: Url,
     /// How to authenticate. Resolved against the secret store at publish time.
     pub credential: CredentialRef,
+    /// The Joomla site articles are inserted into. `None` — including every configuration
+    /// written before 002 — publishes photos only (FR-013).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub site: Option<crate::model::site::SiteTarget>,
 }
 
 /// The name of a [`ServerConfig`], which is all a [`crate::model::item::NewsItem`] holds.

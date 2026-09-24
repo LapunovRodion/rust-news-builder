@@ -1,0 +1,10 @@
+{
+  "protocol": 1,
+  "op": "find",
+  "site_url": "https://example.org/",
+  "alias": "den-konstitutsii",
+  "category": 8,
+  "title": "День Конституции",
+  "articletext": "<hr id=\"system-readmore\"/><p>Текст «с кавычками» & 'апострофами'.</p>",
+  "settings": { "category": 8, "state": "published", "featured": false }
+}

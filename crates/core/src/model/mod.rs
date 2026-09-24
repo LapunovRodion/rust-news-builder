@@ -9,6 +9,7 @@ pub mod item;
 pub mod photo;
 pub mod server;
 pub mod server_store;
+pub mod site;
 
 pub use appearance::{Appearance, ImageBudget, StyleSet};
 pub use item::{

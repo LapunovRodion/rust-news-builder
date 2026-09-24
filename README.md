@@ -24,6 +24,7 @@ than something to keep in step by hand.
 - [`newsbuilder build`](#newsbuilder-build)
 - [`newsbuilder publish`](#newsbuilder-publish)
 - [`newsbuilder server`](#newsbuilder-server)
+- [Site insertion (Joomla)](#site-insertion-joomla)
 - [Exit codes](#exit-codes)
 - [`--json` output](#--json-output)
 - [Appearance configuration](#appearance-configuration)
@@ -214,6 +215,94 @@ clear is worse than no secret.
 
 ---
 
+## Site insertion (Joomla)
+
+Optionally, a publish goes one step further: after the photos, the article itself is created on
+the Joomla site, so nothing has to be pasted into the administrator by hand. It goes over the same
+SSH connection as the photos. The application runs the server's `php` with a small program — the
+*bridge* — sent on stdin. The bridge starts Joomla and saves the article through Joomla's own
+article model, so the article gets everything one made in the administrator gets: its asset and
+workflow rows, the split at the readmore marker, a history entry, and the content plugins.
+
+**What the server needs**
+
+- The SSH account can run `php` (the command-line interpreter) and can read the Joomla install,
+  including `configuration.php`.
+- Joomla 4, 5 or 6.
+
+Nothing is installed on the site and nothing is left behind: the bridge exists only for as long
+as it runs. The database settings are read from the site's own `configuration.php`, so the
+application holds **no database password** — there is no new secret to store.
+
+**Setting it up**
+
+```bash
+newsbuilder server site set newsroom --joomla-root /var/www/html --site-url https://example.org/
+newsbuilder server site check newsroom          # lists categories, access levels, languages, authors
+newsbuilder server site set newsroom --category 8
+```
+
+`server site set` changes only the flags it is given. Turning insertion on needs
+`--joomla-root`, `--site-url` and `--category` together; `check` lists the ids the settings
+flags take. `server site disable newsroom` turns insertion off and changes nothing on the site.
+In the desktop application the same settings are under **Серверы → Сайт Joomla**, where
+**Проверить подключение** fills the lists.
+
+**The article settings**, as server defaults and per-item overrides:
+
+| Flag | Joomla field |
+|------|--------------|
+| `--category <ID>` | Category (required as a server default) |
+| `--state published\|unpublished` | Status. Published unless set otherwise |
+| `--featured` / `--no-featured` | Featured |
+| `--access <ID>` | Access |
+| `--language <CODE>` | Language, `*` for all |
+| `--author <ID>` | Created by |
+| `--author-alias <TEXT>` | Author's alias |
+| `--publish-up <RFC3339>` / `--publish-down <RFC3339>` | Start / finish publishing |
+| `--meta-description <TEXT>` | Meta description (≤ 300 characters, one line) |
+| `--tag <ID>` (repeat) / `--no-tags` | Tags. An item's tags replace the server's, not add to them |
+
+A setting chosen nowhere is left out, so Joomla gives it the value a new article made by hand
+would get.
+
+**The cover** — Joomla's *Intro Image*, shown beside the announcement in news lists — is chosen
+per item from its placed photos: by default the first photo in the text, or any other, or none.
+In the application it is the row of thumbnails under **Параметры статьи**; on the command line it
+is `publish --intro-image first|none|N`, where `N` is the photo's number as in the markers. A
+photo under the site's own address is stored as a site-relative path (`images/…`), the way
+Joomla's media field stores it. Only the intro image and its alt text (the title) are written;
+the full-text image and anything else on that tab are left as they are.
+
+**Publishing**
+
+The article's title is the item's title, its text is the fragment byte for byte, and its alias
+is the item's folder name. The application finds its article again by that alias and by the
+mark it writes into the article's **Note** field (`newsbuilder:` and a hash of what it wrote).
+That means publishing again works from either interface and from any machine:
+
+| On the site | What happens |
+|-------------|--------------|
+| No article yet | Created |
+| The same article, nothing changed | Left alone — not even its modified date moves |
+| The item changed | The same article is updated; never a second one |
+| The article was edited in the administrator | Stops and asks: `--overwrite-article` |
+| The article is in the trash | Stops and asks: `--overwrite-article` restores and updates it |
+| The article was deleted | Stops and asks: `--create-article` creates it again |
+
+**Nothing is ever deleted or trashed.** The bridge has no operation for it, and a test fails the
+build if one appears.
+
+`--dry-run` reports the article it would create or update, with its settings, and writes
+nothing. `--no-article` publishes the photos only. If the photos go up but the article cannot be
+written, the run says which step failed, exits 5, and still prints the fragment, so the article
+can be made by hand.
+
+A corrected *headline* renames the photos, and a renamed item gets a new folder and therefore a
+new article; the old one stays on the site. A corrected paragraph updates the article in place.
+
+---
+
 ## Exit codes
 
 | Code | Meaning |
@@ -221,9 +310,9 @@ clear is worse than no secret.
 | 0 | Success. Warnings are permitted unless `--strict` was given |
 | 1 | Usage error — bad flags, a missing required argument |
 | 2 | Input error — an unreadable document, an unsupported format, a missing photo |
-| 3 | Refusal — the item needs a human decision, or no credential resolved |
+| 3 | Refusal — the item needs a human decision, no credential resolved, or the article needs confirming (`--overwrite-article`, `--create-article`) |
 | 4 | Processing error — a photo could not be brought within the size budget |
-| 5 | Transport error — connection, authentication, or upload failed |
+| 5 | Transport error — connection, authentication, or upload failed; or the article could not be written after the photos went up |
 
 Results go to stdout; diagnostics and warnings go to stderr, so a script that reads only the
 document still leaves a readable trace in its log.
@@ -258,6 +347,16 @@ that says only "upload failed" is a defect, not a terse style.
   ]
 }
 ```
+
+When the server inserts articles, a publish also carries `article`:
+
+```json
+"article": { "outcome": "created", "id": 1234, "url": "https://example.org/index.php?option=com_content&view=article&id=1234&catid=8" }
+```
+
+`outcome` is one of `created`, `updated`, `unchanged`, `would_create` / `would_update` (with
+`settings`), `needs_confirmation` (with `reason`: `gone`, `trashed`, `edited_on_site`), or
+`failed` (with `step` and `detail`). The last two set `ok` to `false`.
 
 `remote_folder` and `uploaded` appear only for a publish. `fragment` carries the fragment itself
 when no `--output` was given. `uploaded: false` means the server already had that exact file and
@@ -397,10 +496,11 @@ just invariants   # the data-model invariants
 just desktop      # cargo tauri dev
 ```
 
-Two suites are opt-in, because one needs a server and the other measures a clock:
+Three suites are opt-in, because two need a server and the third measures a clock:
 
 ```bash
 just e2e             # publishes to a throwaway local sshd; needs OpenSSH on PATH
+just e2e-joomla      # a throwaway Joomla 5 + MariaDB + sshd in containers; needs docker compose
 just bench-preview   # the preview-latency measurements, built optimised
 ```
 

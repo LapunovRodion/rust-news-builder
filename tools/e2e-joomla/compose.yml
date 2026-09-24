@@ -1,0 +1,37 @@
+# Throwaway Joomla for `just e2e-joomla`. Nothing here is a real credential.
+services:
+  db:
+    image: docker.io/library/mariadb:11
+    environment:
+      MARIADB_ROOT_PASSWORD: e2e-root-password
+      MARIADB_DATABASE: joomla
+      MARIADB_USER: joomla
+      MARIADB_PASSWORD: e2e-db-password
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 3s
+      retries: 40
+
+  joomla:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      JOOMLA_DB_HOST: db
+      JOOMLA_DB_TYPE: mysqli
+      JOOMLA_DB_USER: joomla
+      JOOMLA_DB_PASSWORD: e2e-db-password
+      JOOMLA_DB_NAME: joomla
+      JOOMLA_SITE_NAME: News Builder e2e
+      JOOMLA_ADMIN_USER: E2E Admin
+      JOOMLA_ADMIN_USERNAME: newsbuilder
+      JOOMLA_ADMIN_PASSWORD: e2e-admin-password
+      JOOMLA_ADMIN_EMAIL: e2e@example.org
+    ports:
+      - "127.0.0.1:2222:22"
+      - "127.0.0.1:8088:80"
+    healthcheck:
+      test: ["CMD", "test", "-f", "/var/www/html/configuration.php"]
+      interval: 3s
+      retries: 100

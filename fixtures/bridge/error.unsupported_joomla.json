@@ -1,0 +1,1 @@
+{ "ok": false, "error": { "kind": "unsupported_joomla", "detail": "Joomla 3.10.12 is not supported", "found": "3.10.12" } }

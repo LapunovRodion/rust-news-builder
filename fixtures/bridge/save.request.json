@@ -1,0 +1,23 @@
+{
+  "protocol": 1,
+  "op": "save",
+  "site_url": "https://example.org/",
+  "id": null,
+  "restore": false,
+  "alias": "den-konstitutsii",
+  "title": "День Конституции",
+  "articletext": "<hr id=\"system-readmore\"/><p>Текст «с кавычками» & 'апострофами'.</p>",
+  "intro_image": "images/news/den-konstitutsii/den-konstitutsii-01.jpg",
+  "settings": {
+    "category": 8,
+    "state": "published",
+    "featured": false,
+    "access": 1,
+    "language": "*",
+    "author": 42,
+    "author_alias": "Пресс-служба",
+    "publish_up": "2026-09-17T10:00:00+03:00",
+    "meta_description": "Кратко о главном",
+    "tags": [3, 5]
+  }
+}

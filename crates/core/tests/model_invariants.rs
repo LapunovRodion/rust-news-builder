@@ -197,3 +197,85 @@ fn an_item_with_no_body_still_satisfies_every_invariant() {
     assert!(item.crops_are_within_bounds());
     assert!(Slug::is_well_formed(item.slug.as_str()));
 }
+
+// ---------------------------------------------------------------------------------------------
+// 002: the site target and the article settings (data-model.md, T004)
+// ---------------------------------------------------------------------------------------------
+
+/// A `servers.json` entry exactly as feature 001 wrote it: no `site` key at all.
+const SERVER_WRITTEN_BY_001: &str = r#"{
+  "name": "newsroom",
+  "host": "news.example.org",
+  "user": "editor",
+  "port": 22,
+  "remote_base_path": "/var/www/html/news",
+  "public_base_url": "https://example.org/news/",
+  "credential": { "kind": "password", "server": "newsroom" }
+}"#;
+
+#[test]
+fn inv_s5_a_server_saved_before_site_insertion_loads_with_insertion_off() {
+    let config: newsbuilder_core::model::server::ServerConfig =
+        serde_json::from_str(SERVER_WRITTEN_BY_001).expect("a 001 configuration still loads");
+    assert!(
+        config.site.is_none(),
+        "insertion stays off until configured"
+    );
+}
+
+#[test]
+fn a_site_target_round_trips_through_the_configuration_file() {
+    use newsbuilder_core::model::site::{ArticleSettings, ArticleState, SiteTarget};
+
+    let mut config: newsbuilder_core::model::server::ServerConfig =
+        serde_json::from_str(SERVER_WRITTEN_BY_001).expect("loads");
+    config.site = Some(SiteTarget {
+        joomla_root: "/var/www/html".to_owned(),
+        site_url: url::Url::parse("https://example.org/").expect("valid"),
+        php: "php".to_owned(),
+        defaults: ArticleSettings {
+            category: Some(8),
+            state: Some(ArticleState::Published),
+            ..ArticleSettings::default()
+        },
+    });
+
+    let text = serde_json::to_string(&config).expect("serialises");
+    let back: newsbuilder_core::model::server::ServerConfig =
+        serde_json::from_str(&text).expect("deserialises");
+    assert_eq!(back, config);
+}
+
+#[test]
+fn a_site_target_written_without_a_php_command_defaults_to_php() {
+    let site: newsbuilder_core::model::site::SiteTarget = serde_json::from_str(
+        r#"{ "joomla_root": "/srv/joomla", "site_url": "https://example.org/", "defaults": {} }"#,
+    )
+    .expect("loads");
+    assert_eq!(site.php, "php");
+}
+
+#[test]
+fn inv_s3_an_article_state_is_only_ever_published_or_unpublished() {
+    use newsbuilder_core::model::site::ArticleState;
+
+    assert_eq!(
+        serde_json::to_string(&ArticleState::Published).expect("serialises"),
+        r#""published""#
+    );
+    assert_eq!(
+        serde_json::to_string(&ArticleState::Unpublished).expect("serialises"),
+        r#""unpublished""#
+    );
+    // No way to ask for the trash or the archive: the application cannot put an article there.
+    assert!(serde_json::from_str::<ArticleState>(r#""trashed""#).is_err());
+    assert!(serde_json::from_str::<ArticleState>(r#""archived""#).is_err());
+}
+
+#[test]
+fn a_new_item_overrides_no_article_setting() {
+    assert_eq!(
+        NewsItem::new().article,
+        newsbuilder_core::model::site::ArticleSettings::default()
+    );
+}

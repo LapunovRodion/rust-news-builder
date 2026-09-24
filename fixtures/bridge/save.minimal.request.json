@@ -1,0 +1,11 @@
+{
+  "protocol": 1,
+  "op": "save",
+  "site_url": "https://example.org/",
+  "id": 1234,
+  "restore": false,
+  "alias": "den-konstitutsii",
+  "title": "День Конституции",
+  "articletext": "<hr id=\"system-readmore\"/><p>Текст.</p>",
+  "settings": { "category": 8, "state": "published" }
+}

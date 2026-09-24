@@ -14,6 +14,7 @@
 //! feature, which both frontends enable and no test of the domain rules does.
 
 pub mod files;
+pub mod joomla;
 pub mod keyring_store;
 #[cfg(feature = "sftp")]
 pub mod transport;

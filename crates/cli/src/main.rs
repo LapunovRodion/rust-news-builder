@@ -27,9 +27,13 @@ use newsbuilder_core::model::item::{NewsItem, SourceFormat};
 use newsbuilder_core::model::photo::PhotoSource;
 use newsbuilder_core::model::server::{CredentialRef, ServerConfig, Slug};
 use newsbuilder_core::model::server_store::ServerStore;
+use newsbuilder_core::model::site::{
+    ArticleConfirmation, ArticleOutcome, ArticleSettings, ArticleState, ConfirmationReason,
+    IntroImage, SiteTarget,
+};
 use newsbuilder_core::ports::SecretStore;
 use newsbuilder_core::publish::slug::slugify;
-use newsbuilder_core::publish::{PublishMode, paths, publish};
+use newsbuilder_core::publish::{PublishMode, check_site, paths, publish_to_site};
 use newsbuilder_core::secret::Secret;
 
 use exit::{Exit, Failure, Refusal};
@@ -135,6 +139,160 @@ struct PublishArgs {
     /// Exit non-zero when the run produced warnings.
     #[arg(long)]
     strict: bool,
+
+    /// Upload the photos only, even when the server inserts articles (002 FR-013).
+    #[arg(long)]
+    no_article: bool,
+
+    /// This item's article settings, over the server's defaults.
+    #[command(flatten)]
+    article: ArticleFlags,
+
+    /// Confirms overwriting an article edited on the site, or restoring a trashed one.
+    #[arg(long, conflicts_with = "create_article")]
+    overwrite_article: bool,
+
+    /// Confirms creating the article again when it was deleted from the site.
+    #[arg(long)]
+    create_article: bool,
+
+    /// The article's cover (intro image): `first` (the default: the first photo in the text),
+    /// `none`, or a photo's number — its 1-based position, as in the markers.
+    #[arg(long, value_name = "first|none|N")]
+    intro_image: Option<String>,
+}
+
+/// Reads `--intro-image` against the item's photos, in their order.
+fn intro_image(
+    photos: &[newsbuilder_core::model::photo::PhotoId],
+    value: &str,
+) -> Result<IntroImage, Failure> {
+    match value {
+        "first" => Ok(IntroImage::First),
+        "none" => Ok(IntroImage::None),
+        number => number
+            .parse::<usize>()
+            .ok()
+            .and_then(|n| n.checked_sub(1))
+            .and_then(|index| photos.get(index))
+            .map(|id| IntroImage::Photo(*id))
+            .ok_or_else(|| {
+                Failure::Usage(format!(
+                    "--intro-image `{number}` is not `first`, `none`, or a photo number from 1 \
+                     to {}",
+                    photos.len()
+                ))
+            }),
+    }
+}
+
+/// The Joomla article options (002 FR-010), shared by `publish` and `server site set` so the
+/// two cannot read them differently.
+#[derive(Debug, Args, Default)]
+struct ArticleFlags {
+    /// Category id (see `newsbuilder server site check`).
+    #[arg(long, value_name = "ID")]
+    category: Option<u32>,
+
+    /// Publication state.
+    #[arg(long, value_name = "STATE", value_parser = ["published", "unpublished"])]
+    state: Option<String>,
+
+    /// Mark the article featured.
+    #[arg(long, conflicts_with = "no_featured")]
+    featured: bool,
+
+    /// Mark the article not featured.
+    #[arg(long)]
+    no_featured: bool,
+
+    /// Access (view level) id.
+    #[arg(long, value_name = "ID")]
+    access: Option<u32>,
+
+    /// `*` or a content language code such as `ru-RU`.
+    #[arg(long, value_name = "CODE")]
+    language: Option<String>,
+
+    /// Author user id.
+    #[arg(long, value_name = "ID")]
+    author: Option<u32>,
+
+    /// The author name shown instead of the user's.
+    #[arg(long, value_name = "TEXT")]
+    author_alias: Option<String>,
+
+    /// Start publishing at this RFC 3339 instant.
+    #[arg(long, value_name = "RFC3339")]
+    publish_up: Option<String>,
+
+    /// Stop publishing at this RFC 3339 instant.
+    #[arg(long, value_name = "RFC3339")]
+    publish_down: Option<String>,
+
+    /// The meta description.
+    #[arg(long, value_name = "TEXT")]
+    meta_description: Option<String>,
+
+    /// A tag id; repeat for several. Replaces the server's tags rather than adding to them.
+    #[arg(long = "tag", value_name = "ID", conflicts_with = "no_tags")]
+    tags: Vec<u32>,
+
+    /// No tags at all.
+    #[arg(long)]
+    no_tags: bool,
+}
+
+impl ArticleFlags {
+    /// The flags as settings; a flag not given is unset.
+    fn settings(&self) -> Result<ArticleSettings, Failure> {
+        use time::OffsetDateTime;
+        use time::format_description::well_known::Rfc3339;
+
+        let instant = |flag: &str, value: &Option<String>| {
+            value
+                .as_deref()
+                .map(|text| {
+                    OffsetDateTime::parse(text, &Rfc3339).map_err(|error| {
+                        Failure::Usage(format!(
+                            "--{flag} `{text}` is not an RFC 3339 instant: {error}"
+                        ))
+                    })
+                })
+                .transpose()
+        };
+        let settings = ArticleSettings {
+            category: self.category,
+            state: self.state.as_deref().map(|s| {
+                if s == "unpublished" {
+                    ArticleState::Unpublished
+                } else {
+                    ArticleState::Published
+                }
+            }),
+            featured: match (self.featured, self.no_featured) {
+                (true, _) => Some(true),
+                (_, true) => Some(false),
+                _ => None,
+            },
+            access: self.access,
+            language: self.language.clone(),
+            author: self.author,
+            author_alias: self.author_alias.clone(),
+            publish_up: instant("publish-up", &self.publish_up)?,
+            publish_down: instant("publish-down", &self.publish_down)?,
+            meta_description: self.meta_description.clone(),
+            tags: if self.no_tags {
+                Some(Vec::new())
+            } else if self.tags.is_empty() {
+                None
+            } else {
+                Some(self.tags.clone())
+            },
+        };
+        settings.validate()?;
+        Ok(settings)
+    }
 }
 
 #[derive(Debug, Subcommand)]
@@ -160,6 +318,53 @@ enum ServerCommand {
         /// The configuration the credential belongs to.
         name: String,
     },
+    /// Insert articles into a Joomla site on this server (002).
+    Site {
+        #[command(subcommand)]
+        command: SiteCommand,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+enum SiteCommand {
+    /// Turn insertion on, or change its settings. Only the flags given change.
+    Set(Box<SiteSetArgs>),
+    /// Connect and list the site's categories, access levels, languages and authors. Writes
+    /// nothing.
+    Check {
+        /// The server configuration.
+        name: String,
+        /// Write a single JSON result object to stdout instead of prose.
+        #[arg(long)]
+        json: bool,
+    },
+    /// Turn insertion off. Nothing on the site changes.
+    Disable {
+        /// The server configuration.
+        name: String,
+    },
+}
+
+#[derive(Debug, Args)]
+struct SiteSetArgs {
+    /// The server configuration.
+    name: String,
+
+    /// The Joomla install directory on the server. Required the first time.
+    #[arg(long, value_name = "PATH")]
+    joomla_root: Option<String>,
+
+    /// The site's public address. Required the first time.
+    #[arg(long, value_name = "URL")]
+    site_url: Option<Url>,
+
+    /// The PHP command on the server.
+    #[arg(long, value_name = "COMMAND")]
+    php: Option<String>,
+
+    /// The server's default article settings.
+    #[command(flatten)]
+    article: ArticleFlags,
 }
 
 #[derive(Debug, Args)]
@@ -215,7 +420,13 @@ fn main() -> std::process::ExitCode {
             Err(failure) => fail(&failure, args.json),
         },
         Command::Server { command } => {
-            let json = matches!(command, ServerCommand::List { json: true });
+            let json = matches!(
+                command,
+                ServerCommand::List { json: true }
+                    | ServerCommand::Site {
+                        command: SiteCommand::Check { json: true, .. }
+                    }
+            );
             match run_server(command) {
                 Ok(()) => code(Exit::Success),
                 Err(failure) => fail(&failure, json),
@@ -293,6 +504,17 @@ struct Report {
     remote_folder: Option<String>,
     photos: Vec<PhotoLine>,
     warnings: Vec<Warning>,
+    /// What happened to the article, when the server inserts articles (002).
+    article: Option<ArticleOutcome>,
+}
+
+/// The status an article outcome ends the run with, when it ends it (contracts/cli.md).
+fn article_exit(outcome: &ArticleOutcome) -> Option<Exit> {
+    match outcome {
+        ArticleOutcome::NeedsConfirmation { .. } => Some(Exit::Refusal),
+        ArticleOutcome::Failed { .. } => Some(Exit::Transport),
+        _ => None,
+    }
 }
 
 /// One photo, in the shape contracts/cli.md's `--json` document expects.
@@ -338,6 +560,58 @@ impl Report {
             eprintln!("newsbuilder: warning: {warning}");
         }
 
+        // The article can stop a run that the photos did not (contracts/cli.md).
+        if let Some(outcome) = &self.article {
+            match outcome {
+                ArticleOutcome::Created { id, url } => {
+                    eprintln!("newsbuilder: article {id} created: {url}");
+                }
+                ArticleOutcome::Updated { id, url } => {
+                    eprintln!("newsbuilder: article {id} updated: {url}");
+                }
+                ArticleOutcome::Unchanged { id, url } => {
+                    eprintln!("newsbuilder: article {id} unchanged: {url}");
+                }
+                ArticleOutcome::WouldCreate { .. } => {
+                    eprintln!("newsbuilder: would create the article");
+                }
+                ArticleOutcome::WouldUpdate { id, .. } => {
+                    eprintln!("newsbuilder: would update article {id}");
+                }
+                ArticleOutcome::NeedsConfirmation { reason, id } => {
+                    let which = id.map_or_else(String::new, |id| format!(" {id}"));
+                    let (what, flag) = match reason {
+                        ConfirmationReason::EditedOnSite => (
+                            format!(
+                                "article{which} was changed on the site since it was published"
+                            ),
+                            "--overwrite-article",
+                        ),
+                        ConfirmationReason::Trashed => (
+                            format!("article{which} is in the Joomla trash"),
+                            "--overwrite-article",
+                        ),
+                        ConfirmationReason::Gone => (
+                            "this item was published before, but its article is no longer on the \
+                             site"
+                                .to_owned(),
+                            "--create-article",
+                        ),
+                    };
+                    eprintln!("newsbuilder: {what}. Nothing was written; run again with {flag}.");
+                }
+                ArticleOutcome::Failed { step, detail } => {
+                    eprintln!(
+                        "newsbuilder: the photos are on the server but the article is not: \
+                         failed while {step}: {detail}"
+                    );
+                }
+            }
+            if let Some(exit) = article_exit(outcome) {
+                return code(exit);
+            }
+        }
+
         if strict && !self.warnings.is_empty() {
             eprintln!(
                 "newsbuilder: {} warning(s) and --strict was given",
@@ -377,6 +651,19 @@ impl Report {
             }
             if let Some(fragment) = &self.fragment {
                 object.insert("fragment".to_owned(), fragment.clone().into());
+            }
+            if let Some(outcome) = &self.article {
+                let stopped = matches!(
+                    outcome,
+                    ArticleOutcome::NeedsConfirmation { .. } | ArticleOutcome::Failed { .. }
+                );
+                object.insert(
+                    "article".to_owned(),
+                    serde_json::to_value(outcome).unwrap_or_default(),
+                );
+                if stopped {
+                    object.insert("ok".to_owned(), false.into());
+                }
             }
         }
         document
@@ -421,6 +708,7 @@ fn run_build(args: &BuildArgs) -> Result<Report, Failure> {
         remote_folder: None,
         photos,
         warnings,
+        article: None,
     })
 }
 
@@ -433,7 +721,7 @@ fn run_publish(args: &PublishArgs) -> Result<Report, Failure> {
     let item = prepare(&args.source, &mut warnings)?;
 
     let store = ServerStore::platform(LocalFiles::new())?;
-    let server = store.get(&args.server)?.ok_or_else(|| {
+    let mut server = store.get(&args.server)?.ok_or_else(|| {
         Failure::Refused(Refusal {
             kind: "no_such_server",
             detail: format!(
@@ -444,6 +732,36 @@ fn run_publish(args: &PublishArgs) -> Result<Report, Failure> {
         })
     })?;
 
+    let mut item = item;
+    let overrides = args.article.settings()?;
+    if args.no_article {
+        server.site = None;
+    } else if server.site.is_none() && overrides != ArticleSettings::default() {
+        return Err(Failure::Usage(format!(
+            "server `{}` does not insert articles, so article settings have nothing to apply \
+             to. Turn insertion on with `newsbuilder server site set {}`.",
+            server.name, server.name
+        )));
+    }
+    item.article = overrides;
+    if let Some(value) = &args.intro_image {
+        if server.site.is_none() {
+            return Err(Failure::Usage(format!(
+                "server `{}` does not insert articles, so --intro-image has nothing to apply to",
+                server.name
+            )));
+        }
+        let photos: Vec<_> = item.photos.iter().map(|photo| photo.id).collect();
+        item.intro_image = intro_image(&photos, value)?;
+    }
+    let confirmation = if args.overwrite_article {
+        ArticleConfirmation::Overwrite
+    } else if args.create_article {
+        ArticleConfirmation::CreateNew
+    } else {
+        ArticleConfirmation::None
+    };
+
     let mut transport = SftpTransport::new()?;
     let secrets = KeyringStore::new();
     let mode = if args.dry_run {
@@ -452,12 +770,13 @@ fn run_publish(args: &PublishArgs) -> Result<Report, Failure> {
         PublishMode::Live
     };
 
-    let publication = publish(
+    let publication = publish_to_site(
         &item,
         &server,
         &mut transport,
         &secrets,
         mode,
+        confirmation,
         &EmbeddedBytes,
     )?;
     warnings.extend(publication.warnings.iter().cloned());
@@ -501,6 +820,7 @@ fn run_publish(args: &PublishArgs) -> Result<Report, Failure> {
         remote_folder: Some(publication.remote_folder.clone()),
         photos,
         warnings,
+        article: publication.article,
     })
 }
 
@@ -547,6 +867,7 @@ fn run_server(command: ServerCommand) -> Result<(), Failure> {
                             CredentialRef::Key { .. } => "key",
                             CredentialRef::Password { .. } => "password",
                         },
+                        "site": c.site,
                     })).collect::<Vec<_>>(),
                 });
                 println!("{document}");
@@ -558,8 +879,11 @@ fn run_server(command: ServerCommand) -> Result<(), Failure> {
                         CredentialRef::Key { path, .. } => format!("key {}", path.display()),
                         CredentialRef::Password { .. } => "password".to_owned(),
                     };
+                    let site = config.site.as_ref().map_or_else(String::new, |site| {
+                        format!("\tarticles → {}", site.site_url)
+                    });
                     println!(
-                        "{}\t{}@{}:{}\t{}\t{}\t{auth}",
+                        "{}\t{}@{}:{}\t{}\t{}\t{auth}{site}",
                         config.name,
                         config.user,
                         config.host,
@@ -571,6 +895,8 @@ fn run_server(command: ServerCommand) -> Result<(), Failure> {
             }
             Ok(())
         }
+
+        ServerCommand::Site { command } => run_site(&store, command),
 
         ServerCommand::Add(args) => {
             let credential = match &args.key {
@@ -590,6 +916,8 @@ fn run_server(command: ServerCommand) -> Result<(), Failure> {
                 remote_base_path: args.remote_base_path,
                 public_base_url: args.public_base_url,
                 credential,
+                // Re-adding a server keeps its site settings; `server site disable` removes them.
+                site: store.get(&args.name)?.and_then(|old| old.site),
             })?;
             println!("{}", args.name);
             eprintln!(
@@ -646,6 +974,110 @@ fn run_server(command: ServerCommand) -> Result<(), Failure> {
             let secret = read_secret(&config)?;
             secrets.set(&config.credential, &secret)?;
             eprintln!("newsbuilder: stored the credential for `{name}`");
+            Ok(())
+        }
+    }
+}
+
+/// `newsbuilder server site …` (002 contracts/cli.md).
+fn run_site(store: &ServerStore<LocalFiles>, command: SiteCommand) -> Result<(), Failure> {
+    let load = |name: &str| {
+        store.get(name)?.ok_or_else(|| {
+            Failure::Refused(Refusal {
+                kind: "no_such_server",
+                detail: format!("there is no saved server called `{name}`"),
+            })
+        })
+    };
+
+    match command {
+        SiteCommand::Set(args) => {
+            let mut config = load(&args.name)?;
+            let flags = args.article.settings()?;
+            let site = match config.site.take() {
+                Some(mut site) => {
+                    if let Some(root) = args.joomla_root {
+                        site.joomla_root = root;
+                    }
+                    if let Some(url) = args.site_url {
+                        site.site_url = url;
+                    }
+                    if let Some(php) = args.php {
+                        site.php = php;
+                    }
+                    site.defaults = ArticleSettings::resolve(&flags, &site.defaults);
+                    site
+                }
+                None => {
+                    let (Some(joomla_root), Some(site_url), Some(_)) =
+                        (args.joomla_root, args.site_url, flags.category)
+                    else {
+                        return Err(Failure::Usage(
+                            "turning insertion on needs --joomla-root, --site-url and \
+                             --category; `newsbuilder server site check` lists the categories \
+                             once the first two are set"
+                                .to_owned(),
+                        ));
+                    };
+                    SiteTarget {
+                        joomla_root,
+                        site_url,
+                        php: args.php.unwrap_or_else(|| "php".to_owned()),
+                        defaults: ArticleSettings::resolve(&flags, &ArticleSettings::default()),
+                    }
+                }
+            };
+            site.validate_connection(&config.name)?;
+            config.site = Some(site);
+            store.save(config)?;
+            println!("{}", args.name);
+            Ok(())
+        }
+
+        SiteCommand::Check { name, json } => {
+            let config = load(&name)?;
+            let mut transport = SftpTransport::new()?;
+            let catalog = check_site(&config, &mut transport, &KeyringStore::new())?;
+            if json {
+                let mut document = serde_json::to_value(&catalog).unwrap_or_default();
+                if let Some(object) = document.as_object_mut() {
+                    object.insert("ok".to_owned(), true.into());
+                }
+                println!("{document}");
+            } else {
+                println!("Joomla {}", catalog.joomla_version);
+                println!("\ncategories (--category):");
+                for c in &catalog.categories {
+                    let indent = "  ".repeat(c.level.saturating_sub(1) as usize);
+                    let hidden = if c.published { "" } else { " (unpublished)" };
+                    println!("  {:>5}  {indent}{}{hidden}", c.id, c.title);
+                }
+                println!("\naccess levels (--access):");
+                for l in &catalog.access_levels {
+                    println!("  {:>5}  {}", l.id, l.title);
+                }
+                println!("\nlanguages (--language):");
+                for l in &catalog.languages {
+                    println!("  {:>5}  {}", l.code, l.title);
+                }
+                println!("\nauthors (--author):");
+                for a in &catalog.authors {
+                    println!("  {:>5}  {}", a.id, a.name);
+                }
+                println!("\ntags (--tag):");
+                for t in &catalog.tags {
+                    let indent = "  ".repeat(t.level.saturating_sub(1) as usize);
+                    println!("  {:>5}  {indent}{}", t.id, t.title);
+                }
+            }
+            Ok(())
+        }
+
+        SiteCommand::Disable { name } => {
+            let mut config = load(&name)?;
+            config.site = None;
+            store.save(config)?;
+            println!("{name}");
             Ok(())
         }
     }
@@ -889,4 +1321,104 @@ fn write_file(path: &Path, bytes: &[u8]) -> Result<(), Failure> {
         source,
     })?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn report(article: Option<ArticleOutcome>) -> Report {
+        Report {
+            fragment_path: None,
+            fragment: Some("<hr id=\"system-readmore\"/>".to_owned()),
+            slug: Slug::parse("den-znaniy").expect("a slug"),
+            dry_run: false,
+            remote_folder: Some("/var/www/news/den-znaniy".to_owned()),
+            photos: Vec::new(),
+            warnings: Vec::new(),
+            article,
+        }
+    }
+
+    #[test]
+    fn a_created_article_is_reported_with_its_id_and_address() {
+        let json = report(Some(ArticleOutcome::Created {
+            id: 1234,
+            url: "https://example.org/index.php?id=1234".to_owned(),
+        }))
+        .to_json();
+        assert_eq!(json["ok"], true);
+        assert_eq!(json["article"]["outcome"], "created");
+        assert_eq!(json["article"]["id"], 1234);
+        assert_eq!(
+            json["article"]["url"],
+            "https://example.org/index.php?id=1234"
+        );
+    }
+
+    #[test]
+    fn a_dry_run_reports_the_settings_it_would_use() {
+        let json = report(Some(ArticleOutcome::WouldCreate {
+            settings: ArticleSettings {
+                category: Some(8),
+                state: Some(ArticleState::Published),
+                ..ArticleSettings::default()
+            },
+        }))
+        .to_json();
+        assert_eq!(json["article"]["outcome"], "would_create");
+        assert_eq!(json["article"]["settings"]["category"], 8);
+        assert_eq!(json["article"]["settings"]["state"], "published");
+    }
+
+    #[test]
+    fn a_question_is_not_ok_and_exits_as_a_refusal() {
+        let outcome = ArticleOutcome::NeedsConfirmation {
+            reason: ConfirmationReason::EditedOnSite,
+            id: Some(7),
+        };
+        let json = report(Some(outcome.clone())).to_json();
+        assert_eq!(json["ok"], false);
+        assert_eq!(json["article"]["outcome"], "needs_confirmation");
+        assert_eq!(json["article"]["reason"], "edited_on_site");
+        assert_eq!(article_exit(&outcome), Some(Exit::Refusal));
+    }
+
+    #[test]
+    fn a_failed_article_keeps_the_fragment_and_exits_as_a_transport_failure() {
+        let outcome = ArticleOutcome::Failed {
+            step: "starting Joomla".to_owned(),
+            detail: "no configuration.php".to_owned(),
+        };
+        let json = report(Some(outcome.clone())).to_json();
+        assert_eq!(json["ok"], false);
+        assert_eq!(json["article"]["step"], "starting Joomla");
+        assert!(
+            json["fragment"].is_string(),
+            "the fragment is still handed over"
+        );
+        assert_eq!(article_exit(&outcome), Some(Exit::Transport));
+    }
+
+    #[test]
+    fn a_cover_is_named_by_its_photo_number() {
+        use newsbuilder_core::model::photo::PhotoId;
+        let photos = [PhotoId(7), PhotoId(8), PhotoId(9)];
+        assert_eq!(intro_image(&photos, "first").ok(), Some(IntroImage::First));
+        assert_eq!(intro_image(&photos, "none").ok(), Some(IntroImage::None));
+        assert_eq!(
+            intro_image(&photos, "2").ok(),
+            Some(IntroImage::Photo(PhotoId(8)))
+        );
+        assert!(intro_image(&photos, "0").is_err());
+        assert!(intro_image(&photos, "4").is_err());
+        assert!(intro_image(&photos, "cover").is_err());
+    }
+
+    #[test]
+    fn a_photos_only_publish_has_no_article_field() {
+        let json = report(None).to_json();
+        assert!(json.get("article").is_none());
+        assert_eq!(json["ok"], true);
+    }
 }

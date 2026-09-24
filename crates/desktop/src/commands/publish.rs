@@ -15,13 +15,15 @@ use newsbuilder_core::adapters::transport::SftpTransport;
 use newsbuilder_core::error::Result as CoreResult;
 use newsbuilder_core::model::server::{CredentialRef, ServerConfig};
 use newsbuilder_core::model::server_store::ServerStore;
+use newsbuilder_core::model::site::ArticleConfirmation;
 use newsbuilder_core::ports::SecretStore;
-use newsbuilder_core::publish::{PublishMode, publish as core_publish};
+use newsbuilder_core::publish::{PublishMode, check_site as core_check_site, publish_to_site};
 use newsbuilder_core::secret::Secret;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, State};
 
 use crate::commands::item::lock;
+use crate::commands::site::{ArticleOutcomeView, SiteCatalogView, SiteTargetView};
 use crate::error::{CommandError, CommandResult};
 use crate::state::{Session, SessionBytes, WarningView, warning_views};
 
@@ -43,6 +45,9 @@ pub struct ServerView {
     /// Whether a credential is currently stored for it. A boolean, not a value.
     #[serde(default)]
     pub has_credential: bool,
+    /// The Joomla site articles go into; `None` publishes photos only (002 FR-013).
+    #[serde(default)]
+    pub site: Option<SiteTargetView>,
 }
 
 /// What a publish produced.
@@ -58,6 +63,8 @@ pub struct PublicationView {
     pub unchanged: Vec<String>,
     pub dry_run: bool,
     pub warnings: Vec<WarningView>,
+    /// What happened to the article; `None` when the server has no site target.
+    pub article: Option<ArticleOutcomeView>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -193,6 +200,7 @@ pub fn clear_session_credential(name: String, session: State<'_, Session>) -> Co
 pub async fn publish(
     server: String,
     dry_run: bool,
+    confirmation: Option<ArticleConfirmation>,
     app: AppHandle,
     session: State<'_, Session>,
 ) -> CommandResult<PublicationView> {
@@ -244,12 +252,13 @@ pub async fn publish(
             session: session_secret,
             reference: config.credential.clone(),
         };
-        core_publish(
+        publish_to_site(
             &item,
             &config,
             &mut transport,
             &secrets,
             mode,
+            confirmation.unwrap_or_default(),
             &SessionBytes(&bytes),
         )
     })
@@ -291,7 +300,44 @@ pub async fn publish(
         unchanged: publication.unchanged,
         dry_run: publication.dry_run,
         warnings: warning_views(&publication.warnings),
+        article: publication.article.map(ArticleOutcomeView::from),
     })
+}
+
+/// Connects to a server and reads its Joomla site's choices, writing nothing (002 FR-017).
+#[tauri::command]
+pub async fn check_site(
+    server: String,
+    session: State<'_, Session>,
+) -> CommandResult<SiteCatalogView> {
+    let store = ServerStore::platform(LocalFiles::new())?;
+    let config = store.get(&server)?.ok_or_else(|| {
+        CommandError::new(
+            "no_such_server",
+            format!("there is no saved server called `{server}`"),
+        )
+    })?;
+    let session_secret = lock(&session)?.session_credentials.get(&server).cloned();
+
+    // The blocking pool, for the same reason as `publish`.
+    let catalog = tauri::async_runtime::spawn_blocking(move || {
+        let mut transport = SftpTransport::new()?;
+        let secrets = ResolvedSecrets {
+            keyring: KeyringStore::new(),
+            session: session_secret,
+            reference: config.credential.clone(),
+        };
+        core_check_site(&config, &mut transport, &secrets)
+    })
+    .await
+    .map_err(|error| {
+        CommandError::new(
+            "check_interrupted",
+            format!("the check did not run to completion: {error}"),
+        )
+    })??;
+
+    Ok(SiteCatalogView::from(catalog))
 }
 
 /// The OS store, with a per-session credential in front of it (FR-041).
@@ -348,6 +394,7 @@ fn view_of(config: &ServerConfig, has_credential: bool) -> ServerView {
         auth,
         key_path,
         has_credential,
+        site: config.site.as_ref().map(SiteTargetView::from),
     }
 }
 
@@ -391,6 +438,11 @@ fn config_from(view: &ServerView) -> CommandResult<ServerConfig> {
         remote_base_path: view.remote_base_path.clone(),
         public_base_url,
         credential,
+        site: view
+            .site
+            .clone()
+            .map(|site| site.into_target(&view.name))
+            .transpose()?,
     })
 }
 
@@ -415,6 +467,7 @@ mod tests {
             credential: CredentialRef::Password {
                 server: "nowhere".to_owned(),
             },
+            site: None,
         }
     }
 

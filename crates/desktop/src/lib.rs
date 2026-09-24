@@ -83,6 +83,11 @@ pub fn run() {
             commands::publish::set_session_credential,
             commands::publish::clear_session_credential,
             commands::publish::publish,
+            commands::publish::check_site,
+            commands::site::get_article_settings,
+            commands::site::set_article_settings,
+            commands::site::get_intro_image,
+            commands::site::set_intro_image,
         ])
         .run(tauri::generate_context!())
         .expect("the application could not start");

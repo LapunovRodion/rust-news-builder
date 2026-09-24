@@ -137,6 +137,67 @@ pub enum Error {
         /// What was wrong with the request.
         detail: String,
     },
+
+    /// A server's site target is missing something insertion needs (002 INV-S1).
+    #[error("server `{server}` cannot insert articles: its site settings lack {field}")]
+    SiteIncomplete {
+        /// The server configuration's name.
+        server: String,
+        /// The missing or unusable field.
+        field: String,
+    },
+
+    /// The site runs a Joomla version the bridge does not speak (002 research R3).
+    #[error("the site runs Joomla {found}; only Joomla 4 and 5 are supported")]
+    SiteUnsupported {
+        /// The version the bridge found.
+        found: String,
+    },
+
+    /// The category an article would go into is not on the site.
+    #[error("category {id} does not exist on the site")]
+    CategoryMissing {
+        /// The category id asked for.
+        id: u32,
+    },
+
+    /// An article the application did not write already holds the alias.
+    #[error(
+        "the alias `{alias}` is already used by article {article}, which News Builder did not create"
+    )]
+    AliasTaken {
+        /// The alias.
+        alias: String,
+        /// The article holding it.
+        article: u32,
+    },
+
+    /// More than one article carries the item's alias and the application's mark.
+    #[error("several articles carry the alias `{alias}`: {ids:?}; keep one and publish again")]
+    ArticleAmbiguous {
+        /// The alias.
+        alias: String,
+        /// Every article found.
+        ids: Vec<u32>,
+    },
+
+    /// An article setting would be refused or mangled by the site.
+    #[error("article setting `{field}` is invalid: {detail}")]
+    InvalidArticleSetting {
+        /// The setting.
+        field: String,
+        /// Why.
+        detail: String,
+    },
+
+    /// The bridge on the server failed. `step` names what it was doing.
+    #[error("the site failed while {step}: {detail}")]
+    SiteBridge {
+        /// E.g. "starting Joomla", "reading articles", "saving the article".
+        step: String,
+        /// What specifically failed.
+        detail: String,
+    },
 }
 
 /// How a [`Error::DocumentUnreadable`] refers to its document, named or not.
@@ -342,6 +403,13 @@ mod sc_007_audit {
             Error::InvalidAppearance { detail } => detail.clone(),
             Error::PhotoNameUnusable { name, .. } => name.clone(),
             Error::InvalidPlacement { at, .. } => at.to_string(),
+            Error::SiteIncomplete { server, .. } => server.clone(),
+            Error::SiteUnsupported { found } => found.clone(),
+            Error::CategoryMissing { id } => id.to_string(),
+            Error::AliasTaken { alias, .. } => alias.clone(),
+            Error::ArticleAmbiguous { alias, .. } => alias.clone(),
+            Error::InvalidArticleSetting { field, .. } => field.clone(),
+            Error::SiteBridge { step, .. } => step.clone(),
         }
     }
 
@@ -411,6 +479,30 @@ mod sc_007_audit {
             Error::InvalidPlacement {
                 at: 7,
                 detail: "there is no block at that position".to_owned(),
+            },
+            Error::SiteIncomplete {
+                server: "newsroom".to_owned(),
+                field: "default category".to_owned(),
+            },
+            Error::SiteUnsupported {
+                found: "3.10.12".to_owned(),
+            },
+            Error::CategoryMissing { id: 81 },
+            Error::AliasTaken {
+                alias: "den-znaniy".to_owned(),
+                article: 1203,
+            },
+            Error::ArticleAmbiguous {
+                alias: "den-konstitutsii".to_owned(),
+                ids: vec![1204, 1311],
+            },
+            Error::InvalidArticleSetting {
+                field: "meta_description".to_owned(),
+                detail: "longer than 300 characters".to_owned(),
+            },
+            Error::SiteBridge {
+                step: "starting Joomla".to_owned(),
+                detail: "configuration.php could not be read".to_owned(),
             },
         ]
     }
@@ -494,7 +586,7 @@ mod sc_007_audit {
         );
         assert_eq!(
             sampled.len(),
-            12,
+            19,
             "Error has grown or shrunk: add the new variant to `one_of_every_error` and bump \
              this count, having first checked its message names the offending item"
         );

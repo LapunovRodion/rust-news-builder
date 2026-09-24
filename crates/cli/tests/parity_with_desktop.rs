@@ -209,6 +209,7 @@ fn server_config() -> ServerConfig {
         credential: CredentialRef::Password {
             server: "parity".to_owned(),
         },
+        site: None,
     }
 }
 

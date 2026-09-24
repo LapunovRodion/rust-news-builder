@@ -1,0 +1,16 @@
+{
+  "ok": true,
+  "joomla_version": "5.2.3",
+  "categories": [
+    { "id": 2, "title": "Uncategorised", "level": 1, "published": true, "language": "*" },
+    { "id": 8, "title": "Новости", "level": 1, "published": true, "language": "*" },
+    { "id": 12, "title": "Конференции", "level": 2, "published": true, "language": "ru-RU" }
+  ],
+  "access_levels": [ { "id": 1, "title": "Public" }, { "id": 2, "title": "Registered" } ],
+  "languages": [ { "code": "*", "title": "All" }, { "code": "ru-RU", "title": "Русский" } ],
+  "authors": [ { "id": 42, "name": "Пресс-служба" } ],
+  "tags": [
+    { "id": 3, "title": "Наука", "level": 1 },
+    { "id": 5, "title": "Конференции", "level": 2 }
+  ]
+}

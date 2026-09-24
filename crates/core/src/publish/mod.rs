@@ -9,8 +9,11 @@
 //! - **No deletion** (deviation D-7): a photo dropped from an item stays on the server as an
 //!   orphan. [`Transport`] has no removal method, so this cannot be violated by mistake.
 
+pub mod article;
 pub mod paths;
 pub mod slug;
+
+pub use article::{check_site, publish_to_site};
 
 use url::Url;
 
@@ -18,7 +21,9 @@ use crate::build::{BuildContext, PhotoBytesSource, build};
 use crate::error::{Error, Result, Warning};
 use crate::model::item::NewsItem;
 use crate::model::server::{ServerConfig, Slug};
+use crate::model::site::ArticleOutcome;
 use crate::ports::{SecretStore, Transport};
+use crate::secret::Secret;
 
 /// Whether a publish may touch the server.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -45,13 +50,23 @@ pub struct Publication {
     pub remote_folder: String,
     /// Every published file and its public URL, in item order.
     pub uploaded: Vec<(String, Url)>,
+    /// Every placed photo's public URL, uploaded now or already there, in item order. What the
+    /// article's cover is chosen from (002).
+    pub photo_urls: Vec<(crate::model::photo::PhotoId, Url)>,
     /// Files already on the server and left alone. Empty on a first publish; on a re-publish
     /// of an unchanged item this holds everything and `uploaded` is empty (SC-009).
     pub unchanged: Vec<String>,
     /// True when no remote mutation occurred (FR-031).
     pub dry_run: bool,
+    /// True when the folder already held this item's files before this publish — the evidence
+    /// that the item was published before, whether or not any photo changed since (002
+    /// research R6).
+    pub folder_existed: bool,
     /// Everything the build and the upload wanted to say (FR-034).
     pub warnings: Vec<Warning>,
+    /// What happened to the article, when the server has a site target (002). `None` means the
+    /// publish was photos only, exactly as in 001.
+    pub article: Option<ArticleOutcome>,
 }
 
 /// Publishes an item.
@@ -69,21 +84,7 @@ pub fn publish(
     let dry_run = mode == PublishMode::DryRun;
 
     // 1. The credential, before anything expensive happens (FR-029).
-    if !secrets.available() {
-        return Err(Error::SecretStoreUnavailable {
-            detail: format!(
-                "no operating system secret store is reachable, so the credential for \
-                 `{}` cannot be read",
-                server.name
-            ),
-        });
-    }
-    let credential = secrets
-        .get(&server.credential)?
-        .filter(|secret| !secret.is_empty())
-        .ok_or_else(|| Error::NoCredential {
-            server: server.name.clone(),
-        })?;
+    let credential = credential(server, secrets)?;
 
     // 2. The connection and the base path, still before any photo is touched.
     transport.connect(server, &credential)?;
@@ -114,6 +115,7 @@ pub fn publish(
     let present = transport.list(&remote_folder).unwrap_or_default();
     let mut uploaded = Vec::new();
     let mut unchanged = Vec::new();
+    let mut photo_urls = Vec::new();
     let mut created_directory = false;
 
     for processed in &output.processed {
@@ -126,6 +128,8 @@ pub fn publish(
             path: processed.file_name.clone(),
             detail: format!("the public URL could not be built: {e}"),
         })?;
+
+        photo_urls.push((processed.id, url.clone()));
 
         let already = present
             .iter()
@@ -160,9 +164,31 @@ pub fn publish(
         remote_folder,
         uploaded,
         unchanged,
+        photo_urls,
         dry_run,
+        folder_existed: !present.is_empty(),
         warnings,
+        article: None,
     })
+}
+
+/// The server's credential, or the refusal that says why there is none (FR-029, INV-8).
+pub(crate) fn credential(server: &ServerConfig, secrets: &dyn SecretStore) -> Result<Secret> {
+    if !secrets.available() {
+        return Err(Error::SecretStoreUnavailable {
+            detail: format!(
+                "no operating system secret store is reachable, so the credential for \
+                 `{}` cannot be read",
+                server.name
+            ),
+        });
+    }
+    secrets
+        .get(&server.credential)?
+        .filter(|secret| !secret.is_empty())
+        .ok_or_else(|| Error::NoCredential {
+            server: server.name.clone(),
+        })
 }
 
 /// Picks the folder to publish into, suffixing past a folder that holds a different item.

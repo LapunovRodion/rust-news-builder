@@ -7,8 +7,9 @@
 -->
 <script lang="ts">
   import * as api from './api';
+  import ArticleSettingsForm from './ArticleSettingsForm.svelte';
   import { run } from './store.svelte';
-  import type { ServerView } from './types';
+  import { emptyArticleSettings, type ServerView, type SiteCatalogView } from './types';
 
   const { onclose }: { onclose: () => void } = $props();
 
@@ -17,6 +18,9 @@
   let editing = $state<ServerView | null>(null);
   let secret = $state('');
   let note = $state('');
+  /** What "Проверить подключение" read from the site; fills the selects (002 FR-011). */
+  let catalog = $state<SiteCatalogView | null>(null);
+  let siteNote = $state('');
 
   async function refresh() {
     storeAvailable = (await run(() => api.secretStoreAvailable())) ?? false;
@@ -38,11 +42,31 @@
       auth: 'password',
       keyPath: null,
       hasCredential: false,
+      site: null,
     };
   }
 
-  async function save() {
+  function edit(server: ServerView) {
+    editing = { ...server, site: server.site ? { ...server.site, defaults: { ...server.site.defaults } } : null };
+    catalog = null;
+    siteNote = '';
+  }
+
+  function toggleSite(on: boolean) {
     if (!editing) return;
+    editing.site = on
+      ? {
+          joomlaRoot: '/var/www/html',
+          siteUrl: '',
+          php: 'php',
+          defaults: { ...emptyArticleSettings(), state: 'published' },
+        }
+      : null;
+  }
+
+  /** Saves without closing the form. */
+  async function persist(): Promise<boolean> {
+    if (!editing) return false;
     const config = editing;
     const done = await run(async () => {
       await api.saveServer(config);
@@ -51,12 +75,27 @@
       if (secret) await api.setCredential(config.name, secret);
       return true;
     });
-    if (done) {
-      secret = '';
+    if (done) secret = '';
+    return done === true;
+  }
+
+  async function save() {
+    if (await persist()) {
       editing = null;
       note = 'Сохранено';
       await refresh();
     }
+  }
+
+  /** Saves, then reads the site's categories and the rest, writing nothing to it (FR-017). */
+  async function checkConnection() {
+    if (!editing || !(await persist())) return;
+    siteNote = 'Подключение…';
+    const found = await run(() => api.checkSite(editing!.name));
+    catalog = found ?? null;
+    siteNote = found
+      ? `Joomla ${found.joomlaVersion}: ${found.categories.length} категорий`
+      : 'Не удалось подключиться — подробности выше';
   }
 
   async function remove(name: string) {
@@ -98,9 +137,15 @@
               {server.auth === 'key' ? `ключ ${server.keyPath ?? ''}` : 'пароль'} ·
               {server.hasCredential ? 'учётные данные сохранены' : 'учётных данных нет'}
             </p>
+            {#if server.site}
+              <p class="meta">
+                статьи → {server.site.siteUrl}
+                {server.site.defaults.category ? '' : '· категория не выбрана'}
+              </p>
+            {/if}
           </div>
           <div class="actions">
-            <button type="button" onclick={() => (editing = { ...server })}>Изменить</button>
+            <button type="button" onclick={() => edit(server)}>Изменить</button>
             <button
               type="button"
               onclick={() => forgetCredential(server.name)}
@@ -147,13 +192,40 @@
           Пароль отправляется прямо в хранилище секретов операционной системы и не попадает ни в
           файл настроек, ни в журнал.
         </p>
+
+        <fieldset>
+          <legend>
+            <label class="check">
+              <input
+                type="checkbox"
+                checked={draft.site !== null}
+                onchange={(e) => toggleSite(e.currentTarget.checked)}
+              />
+              Сайт Joomla: вставлять статью автоматически
+            </label>
+          </legend>
+          {#if draft.site}
+            {@const site = draft.site}
+            <label>Каталог Joomla на сервере <input bind:value={site.joomlaRoot} required /></label>
+            <label>Адрес сайта <input bind:value={site.siteUrl} placeholder="https://example.org/" required /></label>
+            <label>Команда PHP <input bind:value={site.php} /></label>
+            <div class="actions">
+              <button type="button" onclick={checkConnection}>Проверить подключение</button>
+              {#if siteNote}<span class="hint">{siteNote}</span>{/if}
+            </div>
+            <p class="hint">Настройки статьи по умолчанию. Категорию нужно выбрать до публикации.</p>
+            <ArticleSettingsForm bind:settings={site.defaults} {catalog} unsetLabel="как в Joomla" />
+          {:else}
+            <p class="hint">Выключено: публикуются только фото, фрагмент вставляется вручную.</p>
+          {/if}
+        </fieldset>
         <div class="actions">
           <button type="button" onclick={() => ((editing = null), (secret = ''))}>Отмена</button>
           <button type="submit" class="primary">Сохранить</button>
         </div>
       </form>
     {:else}
-      <button type="button" onclick={() => (editing = blank())}>Добавить сервер</button>
+      <button type="button" onclick={() => edit(blank())}>Добавить сервер</button>
     {/if}
 
     {#if note}<p class="note">{note}</p>{/if}
@@ -233,6 +305,23 @@
     font-size: 0.8rem;
     color: var(--muted);
     gap: 0.15rem;
+  }
+  fieldset {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 0.5rem 0.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  legend {
+    padding: 0 0.3rem;
+  }
+  label.check {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.4rem;
+    color: inherit;
   }
   .hint {
     font-size: 0.75rem;

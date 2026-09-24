@@ -69,7 +69,7 @@ percent-encoding = "2"
 directories = "5"
 
 # Time, for the Clock port (contracts/core-api.md)
-time = { version = "0.3", default-features = false, features = ["std", "formatting", "local-offset"] }
+time = { version = "0.3", default-features = false, features = ["std", "formatting", "parsing", "serde", "local-offset"] }
 
 # Test support
 pretty_assertions = "1"

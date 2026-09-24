@@ -189,6 +189,10 @@ pub struct NewsItem {
     pub server: Option<ServerConfigRef>,
     /// Where the item came from, if it was imported.
     pub source: Option<SourceDocument>,
+    /// This item's article-setting overrides, over the server's defaults (002 FR-010).
+    pub article: crate::model::site::ArticleSettings,
+    /// The article's cover (002).
+    pub intro_image: crate::model::site::IntroImage,
     /// Hands out the next [`PhotoId`]. Monotonic, so an id is never reused within an item.
     next_photo_id: u64,
 }
@@ -211,6 +215,8 @@ impl NewsItem {
             appearance: Appearance::built_in(),
             server: None,
             source: None,
+            article: crate::model::site::ArticleSettings::default(),
+            intro_image: crate::model::site::IntroImage::First,
             next_photo_id: 1,
         }
     }

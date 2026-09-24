@@ -10,6 +10,9 @@ use time::OffsetDateTime;
 
 use crate::error::Result;
 use crate::model::server::{CredentialRef, ServerConfig};
+use crate::model::site::{
+    ArticleProbe, ArticleWrite, FindResult, SavedArticle, SiteCatalog, SiteTarget,
+};
 use crate::secret::Secret;
 
 /// Local file access.
@@ -44,6 +47,20 @@ pub trait Transport {
     fn ensure_dir(&mut self, remote_dir: &str) -> Result<()>;
     /// Uploads a file, overwriting any file already at that path.
     fn put(&mut self, remote_path: &str, bytes: &[u8]) -> Result<()>;
+}
+
+/// The route to a site's articles (002 FR-001), used on a connection [`Transport::connect`]
+/// already opened.
+///
+/// Like [`Transport`], it has **no way to delete**: removing or trashing an article stays a
+/// manual act in the CMS (FR-008), and the missing method is what guarantees it. Do not add one.
+pub trait Site {
+    /// The site's categories, view levels, languages and authors. Writes nothing.
+    fn describe(&mut self, target: &SiteTarget) -> Result<SiteCatalog>;
+    /// The articles that could be this item's. Writes nothing.
+    fn find(&mut self, target: &SiteTarget, probe: &ArticleProbe) -> Result<FindResult>;
+    /// Creates or updates one article.
+    fn save(&mut self, target: &SiteTarget, write: &ArticleWrite) -> Result<SavedArticle>;
 }
 
 /// The OS secret store (FR-040).

@@ -16,6 +16,9 @@ import type {
   PreviewResult,
   PublicationView,
   ServerView,
+  ArticleConfirmation,
+  ArticleSettingsView,
+  SiteCatalogView,
 } from './types';
 
 // --- Document and item -----------------------------------------------------------------
@@ -80,5 +83,18 @@ export const deleteCredential = (name: string) => invoke<void>('delete_credentia
 export const secretStoreAvailable = () => invoke<boolean>('secret_store_available');
 export const setSessionCredential = (name: string, secret: string) =>
   invoke<void>('set_session_credential', { name, secret });
-export const publish = (server: string, dryRun: boolean) =>
-  invoke<PublicationView>('publish', { server, dryRun });
+export const publish = (
+  server: string,
+  dryRun: boolean,
+  confirmation: ArticleConfirmation = 'none',
+) => invoke<PublicationView>('publish', { server, dryRun, confirmation });
+
+// --- The Joomla site (002) -----------------------------------------------------------------
+
+export const checkSite = (server: string) => invoke<SiteCatalogView>('check_site', { server });
+export const getArticleSettings = () => invoke<ArticleSettingsView>('get_article_settings');
+export const setArticleSettings = (settings: ArticleSettingsView) =>
+  invoke<ArticleSettingsView>('set_article_settings', { settings });
+/** `"first"`, `"none"`, or a photo id. */
+export const getIntroImage = () => invoke<string>('get_intro_image');
+export const setIntroImage = (choice: string) => invoke<string>('set_intro_image', { choice });

@@ -58,6 +58,8 @@
             pkgs.git
             pkgs.just
             pkgs.unzip
+            # `php -l` on the Joomla bridge (002 research R9).
+            pkgs.php
           ] ++ tauriDeps ++ imageDeps;
 
           shellHook = ''

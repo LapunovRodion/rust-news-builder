@@ -22,6 +22,7 @@ use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
+use russh::ChannelMsg;
 use russh::client::{self, AuthResult, Handle};
 use russh::keys::known_hosts::known_host_keys_path;
 use russh::keys::ssh_key::PublicKey;
@@ -31,9 +32,13 @@ use russh_sftp::protocol::StatusCode;
 use tokio::io::AsyncWriteExt;
 use tokio::runtime::Runtime;
 
+use crate::adapters::joomla::{self, step};
 use crate::error::{Error, Result};
 use crate::model::server::{CredentialRef, ServerConfig};
-use crate::ports::{RemoteEntry, Transport};
+use crate::model::site::{
+    ArticleProbe, ArticleWrite, FindResult, SavedArticle, SiteCatalog, SiteTarget,
+};
+use crate::ports::{RemoteEntry, Site, Transport};
 use crate::secret::Secret;
 
 /// Why a host key was turned down, carried out of the async handler.
@@ -381,6 +386,96 @@ impl Transport for SftpTransport {
                 step: format!("close {remote_path}"),
                 detail: error.to_string(),
             })
+        })
+    }
+}
+
+/// The site, reached through the bridge on the same SSH session as the photos (002 research R1).
+///
+/// Each operation is one exec channel running [`joomla::command`], a compile-time constant with
+/// two quoted parameters. This is the only place this crate runs a remote command, and the only
+/// program it runs is [`joomla::BRIDGE`] (plan.md Complexity Tracking).
+impl Site for SftpTransport {
+    fn describe(&mut self, target: &SiteTarget) -> Result<SiteCatalog> {
+        let output = self.run_bridge(target, step::DESCRIBE, &joomla::describe_request(target))?;
+        joomla::parse(
+            step::DESCRIBE,
+            &output.stdout,
+            &output.stderr,
+            output.status,
+        )
+    }
+
+    fn find(&mut self, target: &SiteTarget, probe: &ArticleProbe) -> Result<FindResult> {
+        let output = self.run_bridge(target, step::FIND, &joomla::find_request(target, probe))?;
+        joomla::parse(step::FIND, &output.stdout, &output.stderr, output.status)
+    }
+
+    fn save(&mut self, target: &SiteTarget, write: &ArticleWrite) -> Result<SavedArticle> {
+        let output = self.run_bridge(target, step::SAVE, &joomla::save_request(target, write))?;
+        joomla::parse(step::SAVE, &output.stdout, &output.stderr, output.status)
+    }
+}
+
+/// Everything one bridge run printed.
+struct BridgeOutput {
+    stdout: Vec<u8>,
+    stderr: Vec<u8>,
+    status: Option<u32>,
+}
+
+impl SftpTransport {
+    /// Runs the bridge once: the command, the framed request on stdin, then everything it says
+    /// until the channel closes.
+    fn run_bridge(
+        &self,
+        target: &SiteTarget,
+        what: &str,
+        request: &serde_json::Value,
+    ) -> Result<BridgeOutput> {
+        let session = self.session.as_ref().ok_or_else(|| Error::SiteBridge {
+            step: what.to_owned(),
+            detail: "the connection is not open".to_owned(),
+        })?;
+        let failed = |detail: String| Error::SiteBridge {
+            step: what.to_owned(),
+            detail,
+        };
+        let command = joomla::command(target);
+        let input = joomla::frame(request);
+
+        self.runtime.block_on(async {
+            let mut channel = session
+                .channel_open_session()
+                .await
+                .map_err(|e| failed(format!("no command channel could be opened: {e}")))?;
+            channel
+                .exec(true, command)
+                .await
+                .map_err(|e| failed(format!("the server refused to run PHP: {e}")))?;
+            channel
+                .data(input.as_slice())
+                .await
+                .map_err(|e| failed(format!("the request could not be sent: {e}")))?;
+            channel
+                .eof()
+                .await
+                .map_err(|e| failed(format!("the request could not be finished: {e}")))?;
+
+            let mut output = BridgeOutput {
+                stdout: Vec::new(),
+                stderr: Vec::new(),
+                status: None,
+            };
+            while let Some(message) = channel.wait().await {
+                match message {
+                    ChannelMsg::Data { data } => output.stdout.extend_from_slice(&data),
+                    ChannelMsg::ExtendedData { data, .. } => output.stderr.extend_from_slice(&data),
+                    ChannelMsg::ExitStatus { exit_status } => output.status = Some(exit_status),
+                    _ => {}
+                }
+            }
+            Ok(output)
         })
     }
 }

@@ -7,6 +7,8 @@
 .env
 .env.*
 *.log
+# Connection details for a test server, kept out of the history because it holds a password.
+server.md
 
 # Node / Tauri frontend
 node_modules/
@@ -29,3 +31,6 @@ tools/capture-reference/.venv/
 .vscode/
 *.swp
 .DS_Store
+
+# Release artefacts from `just release`.
+/dist/

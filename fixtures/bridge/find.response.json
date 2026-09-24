@@ -1,0 +1,14 @@
+{
+  "ok": true,
+  "articles": [
+    {
+      "id": 1234,
+      "category": 8,
+      "trashed": false,
+      "content_matches_mark": true,
+      "identical": false,
+      "url": "https://example.org/index.php?option=com_content&view=article&id=1234&catid=8"
+    }
+  ],
+  "alias_taken_by": null
+}

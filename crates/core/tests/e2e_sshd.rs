@@ -208,6 +208,7 @@ impl Sshd {
                 path: self.dir.join("user_ed25519"),
                 server: "e2e".to_owned(),
             },
+            site: None,
         }
     }
 }

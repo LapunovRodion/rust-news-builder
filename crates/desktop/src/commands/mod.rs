@@ -10,3 +10,4 @@ pub mod item;
 pub mod photo;
 pub mod placement;
 pub mod publish;
+pub mod site;
